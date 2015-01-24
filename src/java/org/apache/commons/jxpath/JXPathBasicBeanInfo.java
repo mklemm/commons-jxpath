@@ -143,6 +143,16 @@ public class JXPathBasicBeanInfo implements JXPathBeanInfo {
         return (PropertyDescriptor) propertyDescriptorMap.get(propertyName);
     }
 
+    @Override
+    public String getXPathPropertyName(final String modelPropertyName) {
+        return modelPropertyName;
+    }
+
+    @Override
+    public String getModelPropertyName(final String xPathPropertyName) {
+        return xPathPropertyName;
+    }
+
     /**
      * For a dynamic class, returns the corresponding DynamicPropertyHandler
      * class.

@@ -219,7 +219,7 @@ public class JXPathContextReferenceImpl extends JXPathContext {
         return COMPILER;
     }
 
-    protected CompiledExpression compilePath(String xpath) {
+    public CompiledExpression compilePath(String xpath) {
         return new JXPathCompiledExpression(xpath, compileExpression(xpath));
     }
 

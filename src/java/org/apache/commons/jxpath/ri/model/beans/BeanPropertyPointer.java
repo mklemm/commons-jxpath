@@ -78,7 +78,7 @@ public class BeanPropertyPointer extends PropertyPointer {
             PropertyDescriptor[] pds = getPropertyDescriptors();
             names = new String[pds.length];
             for (int i = 0; i < names.length; i++) {
-                names[i] = pds[i].getName();
+                names[i] = beanInfo.getXPathPropertyName(pds[i].getName());
             }
         }
         return names;
@@ -267,7 +267,7 @@ public class BeanPropertyPointer extends PropertyPointer {
         if (propertyName == null) {
             PropertyDescriptor pd = getPropertyDescriptor();
             if (pd != null) {
-                propertyName = pd.getName();
+                propertyName = beanInfo.getXPathPropertyName(pd.getName());
             }
         }
         return propertyName != null ? propertyName : "*";
@@ -283,7 +283,7 @@ public class BeanPropertyPointer extends PropertyPointer {
             int inx = getPropertyIndex();
             if (inx == UNSPECIFIED_PROPERTY) {
                 propertyDescriptor =
-                    beanInfo.getPropertyDescriptor(propertyName);
+                    beanInfo.getPropertyDescriptor(beanInfo.getModelPropertyName(propertyName));
             }
             else {
                 PropertyDescriptor[] propertyDescriptors =

@@ -658,7 +658,7 @@ public abstract class JXPathContext {
      * @param xpath to compile
      * @return CompiledExpression
      */
-    protected abstract CompiledExpression compilePath(String xpath);
+    public abstract CompiledExpression compilePath(String xpath);
 
     /**
      * Finds the first object that matches the specified XPath. It is equivalent

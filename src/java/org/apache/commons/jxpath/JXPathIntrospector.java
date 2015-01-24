@@ -18,8 +18,10 @@ package org.apache.commons.jxpath;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ServiceLoader;
 
 import org.apache.commons.jxpath.util.ClassLoaderUtil;
 
@@ -31,6 +33,21 @@ import org.apache.commons.jxpath.util.ClassLoaderUtil;
  * @version $Revision$ $Date$
  */
 public class JXPathIntrospector {
+    private static final JXPathBeanInfoFactory BEAN_INFO_FACTORY;
+
+    static {
+        final Iterator<JXPathBeanInfoFactory> serviceLoaderIterator = ServiceLoader.load(JXPathBeanInfoFactory.class).iterator();
+        if(serviceLoaderIterator.hasNext()) {
+            BEAN_INFO_FACTORY = serviceLoaderIterator.next();
+        } else {
+            BEAN_INFO_FACTORY = new JXPathBeanInfoFactory() {
+                @Override
+                public JXPathBeanInfo createBeanInfo(final Class clazz) {
+                    return new JXPathBasicBeanInfo(clazz);
+                }
+            };
+        }
+    }
 
     private static Map byClass = Collections.synchronizedMap(new HashMap());
     private static Map byInterface = Collections.synchronizedMap(new HashMap());
@@ -68,7 +85,7 @@ public class JXPathIntrospector {
      * @param beanClass to register
      */
     public static void registerAtomicClass(Class beanClass) {
-        synchronized (byClass) { 
+        synchronized (byClass) {
             byClass.put(beanClass, new JXPathBasicBeanInfo(beanClass, true));
         }
     }
@@ -119,7 +136,7 @@ public class JXPathIntrospector {
             if (beanInfo == null) {
                 beanInfo = findInformant(beanClass);
                 if (beanInfo == null) {
-                    beanInfo = new JXPathBasicBeanInfo(beanClass);
+                    beanInfo = BEAN_INFO_FACTORY.createBeanInfo(beanClass);
                 }
             }
             synchronized (byClass) {

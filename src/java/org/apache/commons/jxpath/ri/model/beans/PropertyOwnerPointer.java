@@ -84,7 +84,7 @@ public abstract class PropertyOwnerPointer extends NodePointer {
     }
 
     /**
-     * Create a new PropertyOwnerPointer.
+     * Create a new PropertyOwnerPointer
      * @param parent pointer
      */
     protected PropertyOwnerPointer(NodePointer parent) {

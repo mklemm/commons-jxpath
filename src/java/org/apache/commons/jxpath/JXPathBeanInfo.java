@@ -69,6 +69,9 @@ public interface JXPathBeanInfo extends Serializable {
      */
     PropertyDescriptor getPropertyDescriptor(String propertyName);
 
+    String getXPathPropertyName(final String modelPropertyName);
+    String getModelPropertyName(final String xPathPropertyName);
+
     /**
      * For dynamic objects, returns the class implementing
      * the {@link DynamicPropertyHandler} interface. That class can
