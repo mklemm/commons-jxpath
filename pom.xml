@@ -37,7 +37,7 @@ under the License.
 	<inceptionYear>2015</inceptionYear>
 	<scm>
 		<connection>scm:git:https://github.com/mklemm/commons-jxpath.git</connection>
-		<developerConnection>scm:git:https://github.com/mklemm/commons-jpxath.git</developerConnection>
+		<developerConnection>scm:git:https://github.com/mklemm/commons-jxpath.git</developerConnection>
 		<url>https://github.com/mklemm/commons-jxpath.git</url>
 		<tag>HEAD</tag>
 	</scm>
