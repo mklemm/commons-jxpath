@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ServiceLoader;
 
+import org.apache.commons.jxpath.ri.axes.NamespaceContext;
 import org.apache.commons.jxpath.util.ClassLoaderUtil;
 
 /**
@@ -42,7 +43,7 @@ public class JXPathIntrospector {
         } else {
             BEAN_INFO_FACTORY = new JXPathBeanInfoFactory() {
                 @Override
-                public JXPathBeanInfo createBeanInfo(final Class clazz) {
+                public JXPathBeanInfo createBeanInfo(final javax.xml.namespace.NamespaceContext namespaceContext, final Class clazz) {
                     return new JXPathBasicBeanInfo(clazz);
                 }
             };
@@ -85,8 +86,8 @@ public class JXPathIntrospector {
      * @param beanClass to register
      */
     public static void registerAtomicClass(Class beanClass) {
-        synchronized (byClass) {
-            byClass.put(beanClass, new JXPathBasicBeanInfo(beanClass, true));
+        synchronized (JXPathIntrospector.byClass) {
+	        JXPathIntrospector.byClass.put(beanClass, new JXPathBasicBeanInfo(beanClass, true));
         }
     }
 
@@ -103,13 +104,13 @@ public class JXPathIntrospector {
         JXPathBasicBeanInfo bi =
             new JXPathBasicBeanInfo(beanClass, dynamicPropertyHandlerClass);
         if (beanClass.isInterface()) {
-            synchronized (byInterface) {
-                byInterface.put(beanClass, bi);
+            synchronized (JXPathIntrospector.byInterface) {
+	            JXPathIntrospector.byInterface.put(beanClass, bi);
             }
         }
         else {
-            synchronized (byClass) {
-                byClass.put(beanClass, bi);
+            synchronized (JXPathIntrospector.byClass) {
+	            JXPathIntrospector.byClass.put(beanClass, bi);
             }
         }
     }
@@ -130,17 +131,17 @@ public class JXPathIntrospector {
      * @return JXPathBeanInfo
      */
     public static JXPathBeanInfo getBeanInfo(Class beanClass) {
-        JXPathBeanInfo beanInfo = (JXPathBeanInfo) byClass.get(beanClass);
+        JXPathBeanInfo beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(beanClass);
         if (beanInfo == null) {
             beanInfo = findDynamicBeanInfo(beanClass);
             if (beanInfo == null) {
                 beanInfo = findInformant(beanClass);
                 if (beanInfo == null) {
-                    beanInfo = BEAN_INFO_FACTORY.createBeanInfo(beanClass);
+                    beanInfo = JXPathIntrospector.BEAN_INFO_FACTORY.createBeanInfo(null, beanClass);
                 }
             }
-            synchronized (byClass) {
-                byClass.put(beanClass, beanInfo);
+            synchronized (JXPathIntrospector.byClass) {
+	            JXPathIntrospector.byClass.put(beanClass, beanInfo);
             }
         }
         return beanInfo;
@@ -155,7 +156,7 @@ public class JXPathIntrospector {
     private static JXPathBeanInfo findDynamicBeanInfo(Class beanClass) {
         JXPathBeanInfo beanInfo = null;
         if (beanClass.isInterface()) {
-            beanInfo = (JXPathBeanInfo) byInterface.get(beanClass);
+            beanInfo = (JXPathBeanInfo) JXPathIntrospector.byInterface.get(beanClass);
             if (beanInfo != null && beanInfo.isDynamic()) {
                 return beanInfo;
             }
@@ -173,7 +174,7 @@ public class JXPathIntrospector {
 
         Class sup = beanClass.getSuperclass();
         if (sup != null) {
-            beanInfo = (JXPathBeanInfo) byClass.get(sup);
+            beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(sup);
             if (beanInfo != null && beanInfo.isDynamic()) {
                 return beanInfo;
             }

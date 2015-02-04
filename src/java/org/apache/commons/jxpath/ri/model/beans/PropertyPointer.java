@@ -32,224 +32,235 @@ import org.apache.commons.jxpath.util.ValueUtils;
  * @version $Revision$ $Date$
  */
 public abstract class PropertyPointer extends NodePointer {
-    public static final int UNSPECIFIED_PROPERTY = Integer.MIN_VALUE;
+	public static final int UNSPECIFIED_PROPERTY = Integer.MIN_VALUE;
 
-    /** property index */
-    protected int propertyIndex = UNSPECIFIED_PROPERTY;
+	/**
+	 * property index
+	 */
+	protected int propertyIndex = PropertyPointer.UNSPECIFIED_PROPERTY;
 
-    /** owning object */
-    protected Object bean;
+	/**
+	 * owning object
+	 */
+	protected Object bean;
 
-    /**
-     * Takes a javabean, a descriptor of a property of that object and
-     * an offset within that property (starting with 0).
-     * @param parent parent pointer
-     */
-    public PropertyPointer(NodePointer parent) {
-        super(parent);
-    }
+	/**
+	 * Takes a javabean, a descriptor of a property of that object and
+	 * an offset within that property (starting with 0).
+	 *
+	 * @param parent parent pointer
+	 */
+	public PropertyPointer(final NodePointer parent) {
+		super(parent);
+	}
 
-    /**
-     * Get the property index.
-     * @return int index
-     */
-    public int getPropertyIndex() {
-        return propertyIndex;
-    }
+	/**
+	 * Get the property index.
+	 *
+	 * @return int index
+	 */
+	public int getPropertyIndex() {
+		return this.propertyIndex;
+	}
 
-    /**
-     * Set the property index.
-     * @param index property index
-     */
-    public void setPropertyIndex(int index) {
-        if (propertyIndex != index) {
-            propertyIndex = index;
-            setIndex(WHOLE_COLLECTION);
-        }
-    }
+	/**
+	 * Set the property index.
+	 *
+	 * @param index property index
+	 */
+	public void setPropertyIndex(final int index) {
+		if (this.propertyIndex != index) {
+			this.propertyIndex = index;
+			setIndex(NodePointer.WHOLE_COLLECTION);
+		}
+	}
 
-    /**
-     * Get the parent bean.
-     * @return Object
-     */
-    public Object getBean() {
-        if (bean == null) {
-            bean = getImmediateParentPointer().getNode();
-        }
-        return bean;
-    }
+	/**
+	 * Get the parent bean.
+	 *
+	 * @return Object
+	 */
+	public Object getBean() {
+		if (this.bean == null) {
+			this.bean = getImmediateParentPointer().getNode();
+		}
+		return this.bean;
+	}
 
-    public QName getName() {
-        return new QName(null, getPropertyName());
-    }
+	public QName getName() {
+		return getPropertyName();
+	}
 
-    /**
-     * Get the property name.
-     * @return String property name.
-     */
-    public abstract String getPropertyName();
+	/**
+	 * Get the property name.
+	 *
+	 * @return String property name.
+	 */
+	public abstract QName getPropertyName();
 
-    /**
-     * Set the property name.
-     * @param propertyName property name to set.
-     */
-    public abstract void setPropertyName(String propertyName);
+	/**
+	 * Set the property name.
+	 *
+	 * @param propertyName property name to set.
+	 */
+	public abstract void setPropertyName(QName propertyName);
 
-    /**
-     * Count the number of properties represented.
-     * @return int
-     */
-    public abstract int getPropertyCount();
+	/**
+	 * Count the number of properties represented.
+	 *
+	 * @return int
+	 */
+	public abstract int getPropertyCount();
 
-    /**
-     * Get the names of the included properties.
-     * @return String[]
-     */
-    public abstract String[] getPropertyNames();
+	/**
+	 * Get the names of the included properties.
+	 *
+	 * @return String[]
+	 */
+	public abstract QName[] getPropertyNames();
 
-    /**
-     * Learn whether this pointer references an actual property.
-     * @return true if actual
-     */
-    protected abstract boolean isActualProperty();
+	/**
+	 * Learn whether this pointer references an actual property.
+	 *
+	 * @return true if actual
+	 */
+	protected abstract boolean isActualProperty();
 
-    public boolean isActual() {
-        if (!isActualProperty()) {
-            return false;
-        }
+	public boolean isActual() {
+		return isActualProperty() && super.isActual();
+	}
 
-        return super.isActual();
-    }
+	private static final Object UNINITIALIZED = new Object();
 
-    private static final Object UNINITIALIZED = new Object();
+	private Object value = PropertyPointer.UNINITIALIZED;
 
-    private Object value = UNINITIALIZED;
+	public Object getImmediateNode() {
+		if (this.value == PropertyPointer.UNINITIALIZED) {
+			this.value = this.index == NodePointer.WHOLE_COLLECTION ? ValueUtils.getValue(getBaseValue())
+					: ValueUtils.getValue(getBaseValue(), this.index);
+		}
+		return this.value;
+	}
 
-    public Object getImmediateNode() {
-        if (value == UNINITIALIZED) {
-            value = index == WHOLE_COLLECTION ? ValueUtils.getValue(getBaseValue())
-                    : ValueUtils.getValue(getBaseValue(), index);
-        }
-        return value;
-    }
+	public boolean isCollection() {
+		final Object value = getBaseValue();
+		return value != null && ValueUtils.isCollection(value);
+	}
 
-    public boolean isCollection() {
-        Object value = getBaseValue();
-        return value != null && ValueUtils.isCollection(value);
-    }
+	public boolean isLeaf() {
+		final Object value = getNode();
+		return value == null || JXPathIntrospector.getBeanInfo(value.getClass()).isAtomic();
+	}
 
-    public boolean isLeaf() {
-        Object value = getNode();
-        return value == null || JXPathIntrospector.getBeanInfo(value.getClass()).isAtomic();
-    }
+	/**
+	 * If the property contains a collection, then the length of that
+	 * collection, otherwise - 1.
+	 *
+	 * @return int length
+	 */
+	public int getLength() {
+		final Object baseValue = getBaseValue();
+		return baseValue == null ? 1 : ValueUtils.getLength(baseValue);
+	}
 
-    /**
-     * If the property contains a collection, then the length of that
-     * collection, otherwise - 1.
-     * @return int length
-     */
-    public int getLength() {
-        Object baseValue = getBaseValue();
-        return baseValue == null ? 1 : ValueUtils.getLength(baseValue);
-    }
+	/**
+	 * Returns a NodePointer that can be used to access the currently
+	 * selected property value.
+	 *
+	 * @return NodePointer
+	 */
+	public NodePointer getImmediateValuePointer() {
+		return NodePointer.newChildNodePointer(
+				(NodePointer) this.clone(),
+				getName(),
+				getImmediateNode());
+	}
 
-    /**
-     * Returns a NodePointer that can be used to access the currently
-     * selected property value.
-     * @return NodePointer
-     */
-    public NodePointer getImmediateValuePointer() {
-        return NodePointer.newChildNodePointer(
-            (NodePointer) this.clone(),
-            getName(),
-            getImmediateNode());
-    }
+	public NodePointer createPath(final JXPathContext context) {
+		if (getImmediateNode() == null) {
+			final AbstractFactory factory = getAbstractFactory(context);
+			final int inx = (this.index == NodePointer.WHOLE_COLLECTION ? 0 : this.index);
+			final boolean success =
+					factory.createObject(
+							context,
+							this,
+							getBean(),
+							getPropertyName().toString(),
+							inx);
+			if (!success) {
+				throw new JXPathAbstractFactoryException("Factory " + factory
+						+ " could not create an object for path: " + asPath());
+			}
+		}
+		return this;
+	}
 
-    public NodePointer createPath(JXPathContext context) {
-        if (getImmediateNode() == null) {
-            AbstractFactory factory = getAbstractFactory(context);
-            int inx = (index == WHOLE_COLLECTION ? 0 : index);
-            boolean success =
-                factory.createObject(
-                    context,
-                    this,
-                    getBean(),
-                    getPropertyName(),
-                    inx);
-            if (!success) {
-                throw new JXPathAbstractFactoryException("Factory " + factory
-                        + " could not create an object for path: " + asPath());
-            }
-        }
-        return this;
-    }
+	public NodePointer createPath(final JXPathContext context, final Object value) {
+		// If neccessary, expand collection
+		if (this.index != NodePointer.WHOLE_COLLECTION && this.index >= getLength()) {
+			createPath(context);
+		}
+		setValue(value);
+		return this;
+	}
 
-    public NodePointer createPath(JXPathContext context, Object value) {
-        // If neccessary, expand collection
-        if (index != WHOLE_COLLECTION && index >= getLength()) {
-            createPath(context);
-        }
-        setValue(value);
-        return this;
-    }
+	public NodePointer createChild(
+			final JXPathContext context,
+			final QName name,
+			final int index,
+			final Object value) {
+		final PropertyPointer prop = (PropertyPointer) clone();
+		if (name != null) {
+			prop.setPropertyName(name);
+		}
+		prop.setIndex(index);
+		return prop.createPath(context, value);
+	}
 
-    public NodePointer createChild(
-        JXPathContext context,
-        QName name,
-        int index,
-        Object value) {
-        PropertyPointer prop = (PropertyPointer) clone();
-        if (name != null) {
-            prop.setPropertyName(name.toString());
-        }
-        prop.setIndex(index);
-        return prop.createPath(context, value);
-    }
+	public NodePointer createChild(
+			final JXPathContext context,
+			final QName name,
+			final int index) {
+		final PropertyPointer prop = (PropertyPointer) clone();
+		if (name != null) {
+			prop.setPropertyName(name);
+		}
+		prop.setIndex(index);
+		return prop.createPath(context);
+	}
 
-    public NodePointer createChild(
-        JXPathContext context,
-        QName name,
-        int index) {
-        PropertyPointer prop = (PropertyPointer) clone();
-        if (name != null) {
-            prop.setPropertyName(name.toString());
-        }
-        prop.setIndex(index);
-        return prop.createPath(context);
-    }
+	public int hashCode() {
+		return getImmediateParentPointer().hashCode() + this.propertyIndex + this.index;
+	}
 
-    public int hashCode() {
-        return getImmediateParentPointer().hashCode() + propertyIndex + index;
-    }
+	public boolean equals(final Object object) {
+		if (object == this) {
+			return true;
+		}
 
-    public boolean equals(Object object) {
-        if (object == this) {
-            return true;
-        }
+		if (!(object instanceof PropertyPointer)) {
+			return false;
+		}
 
-        if (!(object instanceof PropertyPointer)) {
-            return false;
-        }
+		final PropertyPointer other = (PropertyPointer) object;
+		if (this.parent != other.parent && (this.parent == null || !this.parent.equals(other.parent))) {
+			return false;
+		}
 
-        PropertyPointer other = (PropertyPointer) object;
-        if (parent != other.parent && (parent == null || !parent.equals(other.parent))) {
-            return false;
-        }
+		if (getPropertyIndex() != other.getPropertyIndex()
+				|| !getPropertyName().equals(other.getPropertyName())) {
+			return false;
+		}
 
-        if (getPropertyIndex() != other.getPropertyIndex()
-            || !getPropertyName().equals(other.getPropertyName())) {
-            return false;
-        }
+		final int iThis = (this.index == NodePointer.WHOLE_COLLECTION ? 0 : this.index);
+		final int iOther = (other.index == NodePointer.WHOLE_COLLECTION ? 0 : other.index);
+		return iThis == iOther;
+	}
 
-        int iThis = (index == WHOLE_COLLECTION ? 0 : index);
-        int iOther = (other.index == WHOLE_COLLECTION ? 0 : other.index);
-        return iThis == iOther;
-    }
-
-    public int compareChildNodePointers(
-        NodePointer pointer1,
-        NodePointer pointer2) {
-        return getValuePointer().compareChildNodePointers(pointer1, pointer2);
-    }
+	public int compareChildNodePointers(
+			final NodePointer pointer1,
+			final NodePointer pointer2) {
+		return getValuePointer().compareChildNodePointers(pointer1, pointer2);
+	}
 
 }

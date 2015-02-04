@@ -18,6 +18,9 @@ package org.apache.commons.jxpath;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.jxpath.ri.QName;
 
 /**
  * JXPathBeanInfo  is similar to {@link java.beans.BeanInfo} in that it describes
@@ -59,7 +62,7 @@ public interface JXPathBeanInfo extends Serializable {
      * bean info object.  Returns null for atomic beans.
      * @return PropertyDescriptor[]
      */
-    PropertyDescriptor[] getPropertyDescriptors();
+    List<PropertyXMLMapping> getPropertyDescriptors();
 
     /**
      * Returns a PropertyDescriptor for the specified name or null if there
@@ -67,10 +70,8 @@ public interface JXPathBeanInfo extends Serializable {
      * @param propertyName property name
      * @return PropertyDescriptor
      */
-    PropertyDescriptor getPropertyDescriptor(String propertyName);
-
-    String getXPathPropertyName(final String modelPropertyName);
-    String getModelPropertyName(final String xPathPropertyName);
+    PropertyXMLMapping getPropertyDescriptor(String propertyName);
+	PropertyXMLMapping getPropertyDescriptor(final QName xmlName, final boolean attribute);
 
     /**
      * For dynamic objects, returns the class implementing
@@ -79,4 +80,5 @@ public interface JXPathBeanInfo extends Serializable {
      * @return Class
      */
     Class getDynamicPropertyHandlerClass();
+
 }

@@ -20,167 +20,178 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.jxpath.ri.QName;
 
 /**
  * An implementation of JXPathBeanInfo based on JavaBeans' BeanInfo. Properties
  * advertised by JXPathBasicBeanInfo are the same as those advertised by
  * BeanInfo for the corresponding class.
  *
- * @see java.beans.BeanInfo
- * @see java.beans.Introspector
- *
  * @author Dmitri Plotnikov
  * @version $Revision$ $Date$
+ * @see java.beans.BeanInfo
+ * @see java.beans.Introspector
  */
 public class JXPathBasicBeanInfo implements JXPathBeanInfo {
-    private static final long serialVersionUID = -3863803443111484155L;
+	private static final long serialVersionUID = -3863803443111484155L;
 
-    private static final Comparator PROPERTY_DESCRIPTOR_COMPARATOR = new Comparator() {
-        public int compare(Object left, Object right) {
-            return ((PropertyDescriptor) left).getName().compareTo(
-                ((PropertyDescriptor) right).getName());
-        }
-    };
+	private static final Comparator<PropertyXMLMapping> PROPERTY_DESCRIPTOR_COMPARATOR = new Comparator<PropertyXMLMapping>() {
+		@Override
+		public int compare(final PropertyXMLMapping left, final PropertyXMLMapping right) {
+			return left.getName().compareTo(right.getName());
+		}
+	};
 
-    private boolean atomic = false;
-    private Class clazz;
-    private Class dynamicPropertyHandlerClass;
-    private transient PropertyDescriptor[] propertyDescriptors;
-    private transient HashMap propertyDescriptorMap;
+	private boolean atomic = false;
+	private final Class clazz;
+	private Class dynamicPropertyHandlerClass;
+	private transient List<PropertyXMLMapping> propertyDescriptors;
+	private transient Map<String, PropertyXMLMapping> propertyDescriptorMap;
 
-    /**
-     * Create a new JXPathBasicBeanInfo.
-     * @param clazz bean class
-     */
-    public JXPathBasicBeanInfo(Class clazz) {
-        this.clazz = clazz;
-    }
+	/**
+	 * Create a new JXPathBasicBeanInfo.
+	 *
+	 * @param clazz bean class
+	 */
+	public JXPathBasicBeanInfo(final Class clazz) {
+		this.clazz = clazz;
+	}
 
-    /**
-     * Create a new JXPathBasicBeanInfo.
-     * @param clazz bean class
-     * @param atomic whether objects of this class are treated as atomic
-     *               objects which have no properties of their own.
-     */
-    public JXPathBasicBeanInfo(Class clazz, boolean atomic) {
-        this.clazz = clazz;
-        this.atomic = atomic;
-    }
+	/**
+	 * Create a new JXPathBasicBeanInfo.
+	 *
+	 * @param clazz  bean class
+	 * @param atomic whether objects of this class are treated as atomic
+	 *               objects which have no properties of their own.
+	 */
+	public JXPathBasicBeanInfo(final Class clazz, final boolean atomic) {
+		this.clazz = clazz;
+		this.atomic = atomic;
+	}
 
-    /**
-     * Create a new JXPathBasicBeanInfo.
-     * @param clazz bean class
-     * @param dynamicPropertyHandlerClass dynamic property handler class
-     */
-    public JXPathBasicBeanInfo(Class clazz, Class dynamicPropertyHandlerClass) {
-        this.clazz = clazz;
-        this.atomic = false;
-        this.dynamicPropertyHandlerClass = dynamicPropertyHandlerClass;
-    }
+	/**
+	 * Create a new JXPathBasicBeanInfo.
+	 *
+	 * @param clazz                       bean class
+	 * @param dynamicPropertyHandlerClass dynamic property handler class
+	 */
+	public JXPathBasicBeanInfo(final Class clazz, final Class dynamicPropertyHandlerClass) {
+		this.clazz = clazz;
+		this.atomic = false;
+		this.dynamicPropertyHandlerClass = dynamicPropertyHandlerClass;
+	}
 
-    /**
-     * Returns true if objects of this class are treated as atomic
-     * objects which have no properties of their own.
-     * @return boolean
-     */
-    public boolean isAtomic() {
-        return atomic;
-    }
+	/**
+	 * Returns true if objects of this class are treated as atomic
+	 * objects which have no properties of their own.
+	 *
+	 * @return boolean
+	 */
+	public boolean isAtomic() {
+		return this.atomic;
+	}
 
-    /**
-     * Return true if the corresponding objects have dynamic properties.
-     * @return boolean
-     */
-    public boolean isDynamic() {
-        return dynamicPropertyHandlerClass != null;
-    }
+	/**
+	 * Return true if the corresponding objects have dynamic properties.
+	 *
+	 * @return boolean
+	 */
+	public boolean isDynamic() {
+		return this.dynamicPropertyHandlerClass != null;
+	}
 
-    public synchronized PropertyDescriptor[] getPropertyDescriptors() {
-        if (propertyDescriptors == null) {
-            if (clazz == Object.class) {
-                propertyDescriptors = new PropertyDescriptor[0];
-            }
-            else {
-                try {
-                    BeanInfo bi = null;
-                    if (clazz.isInterface()) {
-                        bi = Introspector.getBeanInfo(clazz);
-                    }
-                    else {
-                        bi = Introspector.getBeanInfo(clazz, Object.class);
-                    }
-                    PropertyDescriptor[] pds = bi.getPropertyDescriptors();
-                    PropertyDescriptor[] descriptors = new PropertyDescriptor[pds.length];
-                    System.arraycopy(pds, 0, descriptors, 0, pds.length);
-                    Arrays.sort(descriptors, PROPERTY_DESCRIPTOR_COMPARATOR);
-                    propertyDescriptors = descriptors;
-                }
-                catch (IntrospectionException ex) {
-                    ex.printStackTrace();
-                    return new PropertyDescriptor[0];
-                }
-            }
-        }
-        if (propertyDescriptors.length == 0) {
-            return propertyDescriptors;
-        }
-        PropertyDescriptor[] result = new PropertyDescriptor[propertyDescriptors.length];
-        System.arraycopy(propertyDescriptors, 0, result, 0, propertyDescriptors.length);
-        return result;
-    }
+	protected Comparator<PropertyXMLMapping> getPropertyOrderComparator() {
+		return PROPERTY_DESCRIPTOR_COMPARATOR;
+	}
 
-    public synchronized PropertyDescriptor getPropertyDescriptor(String propertyName) {
-        if (propertyDescriptorMap == null) {
-            propertyDescriptorMap = new HashMap();
-            PropertyDescriptor[] pds = getPropertyDescriptors();
-            for (int i = 0; i < pds.length; i++) {
-                propertyDescriptorMap.put(pds[i].getName(), pds[i]);
-            }
-        }
-        return (PropertyDescriptor) propertyDescriptorMap.get(propertyName);
-    }
+	protected PropertyXMLMapping createMappingDescriptor(final PropertyDescriptor propertyDescriptor) {
+		return new PropertyXMLMapping(propertyDescriptor, "", propertyDescriptor.getName(), false);
+	}
 
-    @Override
-    public String getXPathPropertyName(final String modelPropertyName) {
-        return modelPropertyName;
-    }
+	public synchronized List<PropertyXMLMapping> getPropertyDescriptors() {
+		if (this.propertyDescriptors == null) {
+			if (this.clazz == Object.class) {
+				this.propertyDescriptors = Collections.emptyList();
+			} else {
+				try {
+					BeanInfo bi = null;
+					if (this.clazz.isInterface()) {
+						bi = Introspector.getBeanInfo(this.clazz);
+					} else {
+						bi = Introspector.getBeanInfo(this.clazz, Object.class);
+					}
+					final List<PropertyXMLMapping> descriptors = new ArrayList<>(bi.getPropertyDescriptors().length);
+					for(final PropertyDescriptor propertyDescriptor : bi.getPropertyDescriptors()) {
+						descriptors.add(createMappingDescriptor(propertyDescriptor));
+					}
+					Collections.sort(this.propertyDescriptors, JXPathBasicBeanInfo.PROPERTY_DESCRIPTOR_COMPARATOR);
+					this.propertyDescriptors = Collections.unmodifiableList(descriptors);
+				} catch (final IntrospectionException ex) {
+					ex.printStackTrace();
+					return Collections.emptyList();
+				}
+			}
+		}
+		return this.propertyDescriptors;
+	}
 
-    @Override
-    public String getModelPropertyName(final String xPathPropertyName) {
-        return xPathPropertyName;
-    }
+	public synchronized PropertyXMLMapping getPropertyDescriptor(final String propertyName) {
+		if (this.propertyDescriptorMap == null) {
+			this.propertyDescriptorMap = new HashMap<>();
+			final List<PropertyXMLMapping> pds = getPropertyDescriptors();
+			for (final PropertyXMLMapping pd : pds) {
+				this.propertyDescriptorMap.put(pd.getName(), pd);
+			}
+		}
+		return this.propertyDescriptorMap.get(propertyName);
+	}
 
-    /**
-     * For a dynamic class, returns the corresponding DynamicPropertyHandler
-     * class.
-     * @return Class
-     */
-    public Class getDynamicPropertyHandlerClass() {
-        return dynamicPropertyHandlerClass;
-    }
 
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("BeanInfo [class = ");
-        buffer.append(clazz.getName());
-        if (isDynamic()) {
-            buffer.append(", dynamic");
-        }
-        if (isAtomic()) {
-            buffer.append(", atomic");
-        }
-        buffer.append(", properties = ");
-        PropertyDescriptor[] jpds = getPropertyDescriptors();
-        for (int i = 0; i < jpds.length; i++) {
-            buffer.append("\n    ");
-            buffer.append(jpds[i].getPropertyType());
-            buffer.append(": ");
-            buffer.append(jpds[i].getName());
-        }
-        buffer.append("]");
-        return buffer.toString();
-    }
+
+	@Override
+	public PropertyXMLMapping getPropertyDescriptor(final QName xmlPropertyName, final boolean attribute) {
+		return getPropertyDescriptor(xmlPropertyName.getName());
+	}
+
+
+	/**
+	 * For a dynamic class, returns the corresponding DynamicPropertyHandler
+	 * class.
+	 *
+	 * @return Class
+	 */
+	public Class getDynamicPropertyHandlerClass() {
+		return this.dynamicPropertyHandlerClass;
+	}
+
+
+	public String toString() {
+		final StringBuilder buffer = new StringBuilder();
+		buffer.append("BeanInfo [class = ");
+		buffer.append(this.clazz.getName());
+		if (isDynamic()) {
+			buffer.append(", dynamic");
+		}
+		if (isAtomic()) {
+			buffer.append(", atomic");
+		}
+		buffer.append(", properties = ");
+
+		for (final PropertyXMLMapping jpd : getPropertyDescriptors()) {
+			buffer.append("\n    ");
+			buffer.append(jpd.getPropertyDescriptor().getPropertyType());
+			buffer.append(": ");
+			buffer.append(jpd.getName());
+		}
+		buffer.append("]");
+		return buffer.toString();
+	}
 }

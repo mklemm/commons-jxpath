@@ -22,6 +22,8 @@ import java.beans.PropertyDescriptor;
 import org.apache.commons.jxpath.JXPathBeanInfo;
 import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathInvalidAccessException;
+import org.apache.commons.jxpath.PropertyXMLMapping;
+import org.apache.commons.jxpath.ri.QName;
 import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.util.ValueUtils;
 
@@ -36,13 +38,13 @@ public class BeanPropertyPointer extends PropertyPointer {
 
     private static final Object UNINITIALIZED = new Object();
 
-    private String propertyName;
+    private QName propertyName;
     private JXPathBeanInfo beanInfo;
     private Object baseValue = UNINITIALIZED;
     private Object value = UNINITIALIZED;
-    private transient String[] names;
-    private transient PropertyDescriptor[] propertyDescriptors;
-    private transient PropertyDescriptor propertyDescriptor;
+    private transient QName[] names;
+    private transient PropertyXMLMapping[] propertyDescriptors;
+    private transient PropertyXMLMapping propertyDescriptor;
 
     /**
      * Create a new BeanPropertyPointer.
@@ -73,12 +75,12 @@ public class BeanPropertyPointer extends PropertyPointer {
      * Get the names of all properties, sorted alphabetically
      * @return String[]
      */
-    public String[] getPropertyNames() {
+    public QName[] getPropertyNames() {
         if (names == null) {
-            PropertyDescriptor[] pds = getPropertyDescriptors();
-            names = new String[pds.length];
+            PropertyXMLMapping[] pds = getPropertyDescriptors();
+            names = new QName[pds.length];
             for (int i = 0; i < names.length; i++) {
-                names[i] = beanInfo.getXPathPropertyName(pds[i].getName());
+                names[i] = pds[i].getQName();
             }
         }
         return names;
@@ -107,7 +109,8 @@ public class BeanPropertyPointer extends PropertyPointer {
         }
     }
 
-    /**
+
+	/**
      * Get the value of the currently selected property.
      * @return Object value
      */
@@ -263,14 +266,14 @@ public class BeanPropertyPointer extends PropertyPointer {
      * Get the name of the currently selected property.
      * @return String property name
      */
-    public String getPropertyName() {
+    public QName getPropertyName() {
         if (propertyName == null) {
             PropertyDescriptor pd = getPropertyDescriptor();
             if (pd != null) {
-                propertyName = beanInfo.getXPathPropertyName(pd.getName());
+                propertyName = beanInfo.getPropertyXMLMapping(pd.getName()).getQName();
             }
         }
-        return propertyName != null ? propertyName : "*";
+        return propertyName != null ? propertyName : new QName("*");
     }
 
     /**
@@ -278,15 +281,15 @@ public class BeanPropertyPointer extends PropertyPointer {
      * index.
      * @return PropertyDescriptor
      */
-    private PropertyDescriptor getPropertyDescriptor() {
+    private PropertyXMLMapping getPropertyDescriptor() {
         if (propertyDescriptor == null) {
             int inx = getPropertyIndex();
             if (inx == UNSPECIFIED_PROPERTY) {
                 propertyDescriptor =
-                    beanInfo.getPropertyDescriptor(beanInfo.getModelPropertyName(propertyName));
+                    beanInfo.getPropertyXMLMapping(propertyName, isAttribute());
             }
             else {
-                PropertyDescriptor[] propertyDescriptors =
+	            PropertyXMLMapping[] propertyDescriptors =
                     getPropertyDescriptors();
                 if (inx >= 0 && inx < propertyDescriptors.length) {
                     propertyDescriptor = propertyDescriptors[inx];
@@ -303,7 +306,7 @@ public class BeanPropertyPointer extends PropertyPointer {
      * Get all PropertyDescriptors.
      * @return PropertyDescriptor[]
      */
-    protected synchronized PropertyDescriptor[] getPropertyDescriptors() {
+    protected synchronized PropertyXMLMapping[] getPropertyDescriptors() {
         if (propertyDescriptors == null) {
             propertyDescriptors = beanInfo.getPropertyDescriptors();
         }
