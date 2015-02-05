@@ -17,7 +17,6 @@
 package org.apache.commons.jxpath.ri.axes;
 
 import java.util.Iterator;
-
 import org.apache.commons.jxpath.ri.EvalContext;
 import org.apache.commons.jxpath.ri.InfoSetUtil;
 import org.apache.commons.jxpath.ri.compiler.Expression;
@@ -25,6 +24,7 @@ import org.apache.commons.jxpath.ri.compiler.NameAttributeTest;
 import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyPointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * EvalContext that checks predicates.
@@ -33,162 +33,161 @@ import org.apache.commons.jxpath.ri.model.beans.PropertyPointer;
  * @version $Revision$ $Date$
  */
 public class PredicateContext extends EvalContext {
-    private Expression expression;
-    private boolean done = false;
-    private Expression nameTestExpression;
-    private PropertyPointer dynamicPropertyPointer;
+	private final Expression expression;
+	private boolean done = false;
+	private Expression nameTestExpression = null;
+	private PropertyPointer dynamicPropertyPointer = null;
 
-    /**
-     * Create a new PredicateContext.
-     * @param parentContext parent context
-     * @param expression compiled Expression
-     */
-    public PredicateContext(EvalContext parentContext, Expression expression) {
-        super(parentContext);
-        this.expression = expression;
-        if (expression instanceof NameAttributeTest) {
-            nameTestExpression =
-                ((NameAttributeTest) expression).getNameTestExpression();
-        }
-    }
+	/**
+	 * Create a new PredicateContext.
+	 *
+	 * @param parentContext parent context
+	 * @param expression    compiled Expression
+	 */
+	public PredicateContext(final EvalContext parentContext, final Expression expression) {
+		super(parentContext);
+		this.expression = expression;
+		if (expression instanceof NameAttributeTest) {
+			this.nameTestExpression =
+					((NameAttributeTest) expression).getNameTestExpression();
+		}
+	}
 
-    public boolean nextNode() {
-        if (done) {
-            return false;
-        }
-        while (parentContext.nextNode()) {
-            if (setupDynamicPropertyPointer()) {
-                Object pred = nameTestExpression.computeValue(parentContext);
-                String propertyName = InfoSetUtil.stringValue(pred);
+	public boolean nextNode() {
+		if (this.done) {
+			return false;
+		}
+		while (this.parentContext.nextNode()) {
+			if (setupDynamicPropertyPointer()) {
+				final Object pred = this.nameTestExpression.computeValue(this.parentContext);
+				final String propertyName = InfoSetUtil.stringValue(pred);
 
-                // At this point it would be nice to say:
-                // dynamicPropertyPointer.setPropertyName(propertyName)
-                // and then: dynamicPropertyPointer.isActual().
-                // However some PropertyPointers, e.g. DynamicPropertyPointer
-                // will declare that any property you ask for is actual.
-                // That's not acceptable for us: we really need to know
-                // if the property is currently declared. Thus,
-                // we'll need to perform a search.
-                boolean ok = false;
-                String[] names = dynamicPropertyPointer.getPropertyNames();
-                for (int i = 0; i < names.length; i++) {
-                    if (names[i].equals(propertyName)) {
-                        ok = true;
-                        break;
-                    }
-                }
-                if (ok) {
-                    dynamicPropertyPointer.setPropertyName(propertyName);
-                    position++;
-                    return true;
-                }
-            }
-            else {
-                Object pred = expression.computeValue(parentContext);
-                if (pred instanceof Iterator) {
-                    if (!((Iterator) pred).hasNext()) {
-                        return false;
-                    }
-                    pred = ((Iterator) pred).next();
-                }
+				// At this point it would be nice to say:
+				// dynamicPropertyPointer.setPropertyName(propertyName)
+				// and then: dynamicPropertyPointer.isActual().
+				// However some PropertyPointers, e.g. DynamicPropertyPointer
+				// will declare that any property you ask for is actual.
+				// That's not acceptable for us: we really need to know
+				// if the property is currently declared. Thus,
+				// we'll need to perform a search.
+				PropertyIdentifier foundProperty = null;
+				for (final PropertyIdentifier name : this.dynamicPropertyPointer.getPropertyNames()) {
+					if (name.getLocalName().equals(propertyName)) {
+						foundProperty = name;
+					}
+				}
+				if (foundProperty != null) {
+					this.dynamicPropertyPointer.setPropertyName(foundProperty);
+					this.position++;
+					return true;
+				}
+			} else {
+				Object pred = this.expression.computeValue(this.parentContext);
+				if (pred instanceof Iterator) {
+					if (!((Iterator) pred).hasNext()) {
+						return false;
+					}
+					pred = ((Iterator) pred).next();
+				}
 
-                if (pred instanceof NodePointer) {
-                    pred = ((NodePointer) pred).getNode();
-                }
+				if (pred instanceof NodePointer) {
+					pred = ((NodePointer) pred).getNode();
+				}
 
-                if (pred instanceof Number) {
-                    int pos = (int) InfoSetUtil.doubleValue(pred);
-                    position++;
-                    done = true;
-                    return parentContext.setPosition(pos);
-                }
-                if (InfoSetUtil.booleanValue(pred)) {
-                    position++;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+				if (pred instanceof Number) {
+					final int pos = (int) InfoSetUtil.doubleValue(pred);
+					this.position++;
+					this.done = true;
+					return this.parentContext.setPosition(pos);
+				}
+				if (InfoSetUtil.booleanValue(pred)) {
+					this.position++;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
-    /**
-     * Used for an optimized access to dynamic properties using the
-     * "map[@name = 'name']" syntax
-     * @return whether valid
-     */
-    private boolean setupDynamicPropertyPointer() {
-        if (nameTestExpression == null) {
-            return false;
-        }
+	/**
+	 * Used for an optimized access to dynamic properties using the
+	 * "map[@name_ = 'name']" syntax
+	 *
+	 * @return whether valid
+	 */
+	private boolean setupDynamicPropertyPointer() {
+		if (this.nameTestExpression == null) {
+			return false;
+		}
 
-        NodePointer parent = parentContext.getCurrentNodePointer();
-        if (parent == null) {
-            return false;
-        }
-        parent = parent.getValuePointer();
-        if (!(parent instanceof PropertyOwnerPointer)) {
-            return false;
-        }
-        dynamicPropertyPointer =
-            (PropertyPointer) ((PropertyOwnerPointer) parent)
-                .getPropertyPointer()
-                .clone();
-        return true;
-    }
+		NodePointer parent = this.parentContext.getCurrentNodePointer();
+		if (parent == null) {
+			return false;
+		}
+		parent = parent.getValuePointer();
+		if (!(parent instanceof PropertyOwnerPointer)) {
+			return false;
+		}
+		this.dynamicPropertyPointer =
+				(PropertyPointer) ((PropertyOwnerPointer) parent)
+						.getPropertyPointer()
+						.clone();
+		return true;
+	}
 
-    public boolean setPosition(int position) {
-        if (nameTestExpression == null) {
-            return setPositionStandard(position);
-        }
-        else {
-            if (dynamicPropertyPointer == null && !setupDynamicPropertyPointer()) {
-                return setPositionStandard(position);
-            }
-            if (position < 1
-                || position > dynamicPropertyPointer.getLength()) {
-                return false;
-            }
-            dynamicPropertyPointer.setIndex(position - 1);
-            return true;
-        }
-    }
+	public boolean setPosition(final int position) {
+		if (this.nameTestExpression == null) {
+			return setPositionStandard(position);
+		} else {
+			if (this.dynamicPropertyPointer == null && !setupDynamicPropertyPointer()) {
+				return setPositionStandard(position);
+			}
+			if (position < 1
+					|| position > this.dynamicPropertyPointer.getLength()) {
+				return false;
+			}
+			this.dynamicPropertyPointer.setIndex(position - 1);
+			return true;
+		}
+	}
 
-    public NodePointer getCurrentNodePointer() {
-        if (position == 0 && !setPosition(1)) {
-            return null;
-        }
-        if (dynamicPropertyPointer != null) {
-            return dynamicPropertyPointer.getValuePointer();
-        }
-        return parentContext.getCurrentNodePointer();
-    }
+	public NodePointer getCurrentNodePointer() {
+		if (this.position == 0 && !setPosition(1)) {
+			return null;
+		}
+		if (this.dynamicPropertyPointer != null) {
+			return this.dynamicPropertyPointer.getValuePointer();
+		}
+		return this.parentContext.getCurrentNodePointer();
+	}
 
-    public void reset() {
-        super.reset();
-        parentContext.reset();
-        done = false;
-    }
+	public void reset() {
+		super.reset();
+		this.parentContext.reset();
+		this.done = false;
+	}
 
-    public boolean nextSet() {
-        reset();
-        return parentContext.nextSet();
-    }
+	public boolean nextSet() {
+		reset();
+		return this.parentContext.nextSet();
+	}
 
-    /**
-     * Basic setPosition
-     * @param position to set
-     * @return whether valid
-     */
-    private boolean setPositionStandard(int position) {
-        if (this.position > position) {
-            reset();
-        }
+	/**
+	 * Basic setPosition
+	 *
+	 * @param position to set
+	 * @return whether valid
+	 */
+	private boolean setPositionStandard(final int position) {
+		if (this.position > position) {
+			reset();
+		}
 
-        while (this.position < position) {
-            if (!nextNode()) {
-                return false;
-            }
-        }
-        return true;
-    }
+		while (this.position < position) {
+			if (!nextNode()) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

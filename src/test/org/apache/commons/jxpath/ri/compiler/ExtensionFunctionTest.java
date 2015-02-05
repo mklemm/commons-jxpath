@@ -266,12 +266,7 @@ public class ExtensionFunctionTest extends JXPathTestCase {
             "//.[test:isMap()]/Key1", 
             "Value 1");
 
-        // The function gets all
-        // nodes in the context that match the pattern.
-        assertXPathValue(
-            context,
-            "count(//.[test:count(strings) = 3])",
-            new Double(7));
+
 
         // The function receives a collection of strings
         // and checks their type for testing purposes            
@@ -295,7 +290,16 @@ public class ExtensionFunctionTest extends JXPathTestCase {
             "/beans[contains(test:path(), '[2]')]/name",
             "Name 2");
     }
-    
+
+	public void testExpressionContext1() {
+	   // The function gets all
+        // nodes in the context that match the pattern.
+        assertXPathValue(
+            context,
+            "count(//.[test:count(strings) = 3])",
+            new Double(7));
+	}
+
     public void testCollectionReturn() {
         assertXPathValueIterator(
             context,
@@ -353,9 +357,9 @@ public class ExtensionFunctionTest extends JXPathTestCase {
 
         assertXPathValueAndPointer(
             context,
-            "test:nodeSet()/@name",
+            "test:nodeSet()/name",
             "Name 1",
-            "/beans[1]/@name");
+            "/beans[1]/name");
 
         assertEquals(2, ((Number) context.getValue("count(test:nodeSet())")).intValue());
 

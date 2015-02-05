@@ -37,13 +37,14 @@ import org.apache.commons.jxpath.ri.model.beans.NullElementPointer;
 import org.apache.commons.jxpath.ri.model.beans.NullPropertyPointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyPointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * An evaluation mechanism for simple XPaths, which
  * is much faster than the usual process. It is only used for
  * xpaths which have no context-dependent parts, consist entirely of
  * <code>child::name</code> and <code>self::node()</code> steps with
- * predicates that either integer or have the form <code>[@name = ...]</code>.
+ * predicates that either integer or have the form <code>[@name_ = ...]</code>.
  *
  * @author Dmitri Plotnikov
  * @version $Revision$ $Date$
@@ -56,7 +57,7 @@ public class SimplePathInterpreter {
     // individually.  The names of the methods are supposed to
     // give brief descriptions of those situations.
 
-    private static final QName QNAME_NAME = new QName(null, "name");
+    private static final QName QNAME_NAME = new QName(null, "name_");
     private static final int PERFECT_MATCH = 1000;
 
     // Uncomment this variable and the PATH = ... lines in
@@ -68,7 +69,7 @@ public class SimplePathInterpreter {
      * Interpret a simple path that starts with the given root and
      * follows the given steps. All steps must have the axis "child::"
      * and a name test.  They can also optionally have predicates
-     * of type [@name=expression] or simply [expression] interpreted
+     * of type [@name_=expression] or simply [expression] interpreted
      * as an index.
      * @param context evaluation context
      * @param root root pointer
@@ -90,7 +91,7 @@ public class SimplePathInterpreter {
      * given predicates to it and then follows the given steps.
      * All steps must have the axis "child::" or "attribute::"
      * and a name test.  They can also optionally have predicates
-     * of type [@name=...] or simply [...] interpreted as an index.
+     * of type [@name_=...] or simply [...] interpreted as an index.
      * @param context evaluation context
      * @param root root pointer
      * @param predicates predicates corresponding to <code>steps</code>
@@ -345,8 +346,7 @@ public class SimplePathInterpreter {
             }
             if (parentPointer.isValidProperty(name)) {
                 NodePointer childPointer = parentPointer.getPropertyPointer();
-                ((PropertyPointer) childPointer).setPropertyName(
-                        name.toString());
+                ((PropertyPointer) childPointer).setPropertyName(PropertyIdentifier.fromQName(parentPointer.getNamespaceResolver(), name, axis == Compiler.AXIS_ATTRIBUTE));
                 childPointer.setAttribute(axis == Compiler.AXIS_ATTRIBUTE);
                 return childPointer;
             }
@@ -394,7 +394,7 @@ public class SimplePathInterpreter {
             NodeIterator it = getNodeIterator(context, parent, step);
             NodePointer pointer = null;
             if (it != null) {
-                if (predicate instanceof NameAttributeTest) { // [@name = key]
+                if (predicate instanceof NameAttributeTest) { // [@name_ = key]
                     String key = keyFromPredicate(context, predicate);
                     for (int i = 1; it.setPosition(i); i++) {
                         NodePointer ptr = it.getNodePointer();
@@ -458,7 +458,7 @@ public class SimplePathInterpreter {
         }
 
         Expression predicate = predicates[currentPredicate];
-        if (predicate instanceof NameAttributeTest) { // [@name = key1]
+        if (predicate instanceof NameAttributeTest) { // [@name_ = key1]
             return doPredicateName(
                 context,
                 parent,
@@ -497,7 +497,7 @@ public class SimplePathInterpreter {
         if (child instanceof PropertyOwnerPointer) {
             PropertyPointer pointer =
                 ((PropertyOwnerPointer) child).getPropertyPointer();
-            pointer.setPropertyName(key);
+            pointer.setPropertyName(PropertyIdentifier.createUnqualified(key));
             if (pointer.isActual()) {
                 return doPredicate(
                     context,
@@ -513,7 +513,7 @@ public class SimplePathInterpreter {
             // if the node is a property owner, apply this predicate to it;
             // if the node is a collection, apply this predicate to each elem.;
             // if the node is not a prop owner or a collection,
-            //  see if it has the attribute "name" with the right value,
+            //  see if it has the attribute "name_" with the right value,
             //  if so - proceed to the next predicate
             NodePointer bestMatch = null;
             int bestQuality = 0;
@@ -590,7 +590,7 @@ public class SimplePathInterpreter {
 
     /**
      * Called exclusively for standard InfoSet nodes, e.g. DOM nodes
-     * to evaluate predicate sequences like [@name=...][@name=...][index].
+     * to evaluate predicate sequences like [@name_=...][@name_=...][index].
      * @param context evaluation context
      * @param parents List of parent pointers
      * @param steps path steps
@@ -723,7 +723,7 @@ public class SimplePathInterpreter {
 
     /**
      * Extracts the string value of the expression from a predicate like
-     * [@name=expression].
+     * [@name_=expression].
      * @param context evaluation context
      * @param predicate predicate to evaluate
      * @return String key extracted
@@ -752,7 +752,7 @@ public class SimplePathInterpreter {
     }
 
     /**
-     * Returns true if the pointer has an attribute called "name" and
+     * Returns true if the pointer has an attribute called "name_" and
      * its value is equal to the supplied string.
      * @param pointer input pointer
      * @param name name to check
@@ -819,7 +819,7 @@ public class SimplePathInterpreter {
         if (axis == Compiler.AXIS_CHILD || axis == Compiler.AXIS_ATTRIBUTE) {
             NullPropertyPointer pointer = new NullPropertyPointer(parent);
             QName name = ((NodeNameTest) step.getNodeTest()).getNodeName();
-            pointer.setPropertyName(name.toString());
+            pointer.setPropertyName(PropertyIdentifier.fromQName(pointer.getNamespaceResolver(), name, axis == Compiler.AXIS_ATTRIBUTE));
             pointer.setAttribute(axis == Compiler.AXIS_ATTRIBUTE);
             parent = pointer;
         }

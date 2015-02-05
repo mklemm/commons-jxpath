@@ -22,6 +22,7 @@ import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathInvalidAccessException;
 import org.apache.commons.jxpath.ri.QName;
 import org.apache.commons.jxpath.ri.model.NodePointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * @author Dmitri Plotnikov
@@ -29,7 +30,7 @@ import org.apache.commons.jxpath.ri.model.NodePointer;
  */
 public class NullPropertyPointer extends PropertyPointer {
 
-    private String propertyName = "*";
+    private PropertyIdentifier propertyName = PropertyIdentifier.WILDCARD;
     private boolean byNameAttribute = false;
 
     private static final long serialVersionUID = 5296593071854982754L;
@@ -43,7 +44,7 @@ public class NullPropertyPointer extends PropertyPointer {
     }
 
     public QName getName() {
-        return new QName(propertyName);
+        return propertyName.toQName(getNamespaceResolver());
     }
 
     public void setPropertyIndex(int index) {
@@ -66,7 +67,7 @@ public class NullPropertyPointer extends PropertyPointer {
     }
 
     public NodePointer getValuePointer() {
-        return new NullPointer(this,  new QName(getPropertyName()));
+        return new NullPointer(this,  propertyName.toQName(getNamespaceResolver()));
     }
 
     protected boolean isActualProperty() {
@@ -160,11 +161,11 @@ public class NullPropertyPointer extends PropertyPointer {
         return createPath(context).createChild(context, name, index, value);
     }
 
-    public String getPropertyName() {
+    public PropertyIdentifier getPropertyName() {
         return propertyName;
     }
 
-    public void setPropertyName(String propertyName) {
+    public void setPropertyName(PropertyIdentifier propertyName) {
         this.propertyName = propertyName;
     }
 
@@ -173,7 +174,7 @@ public class NullPropertyPointer extends PropertyPointer {
      * @param attributeValue value to set
      */
     public void setNameAttributeValue(String attributeValue) {
-        this.propertyName = attributeValue;
+        this.propertyName = PropertyIdentifier.createUnqualified(attributeValue);
         byNameAttribute = true;
     }
 
@@ -185,8 +186,8 @@ public class NullPropertyPointer extends PropertyPointer {
         return 0;
     }
 
-    public String[] getPropertyNames() {
-        return new String[0];
+    public PropertyIdentifier[] getPropertyNames() {
+        return new PropertyIdentifier[0];
     }
 
     public String asPath() {
@@ -195,8 +196,8 @@ public class NullPropertyPointer extends PropertyPointer {
         }
         StringBuffer buffer = new StringBuffer();
         buffer.append(getImmediateParentPointer().asPath());
-        buffer.append("[@name='");
-        buffer.append(escape(getPropertyName()));
+        buffer.append("[@name_='");
+        buffer.append(escape(getPropertyName().toString()));
         buffer.append("']");
         if (index != WHOLE_COLLECTION) {
             buffer.append('[').append(index + 1).append(']');

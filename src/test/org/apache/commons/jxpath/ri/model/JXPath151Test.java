@@ -50,14 +50,14 @@ public class JXPath151Test extends JXPathTestCase {
     }
 
     public void testMapValueEqualityUsingNameAttribute() {
-        assertXPathValue(context, "map[@name = 'b'] != map[@name = 'c']", Boolean.TRUE);
-        assertXPathValue(context, "map[@name = 'a'] != map[@name = 'b']", Boolean.TRUE);
-        assertXPathValue(context, "map[@name = 'a'] != map[@name = 'c']", Boolean.FALSE);
-        assertXPathValue(context, "map[@name = 'a'] = map[@name = 'b']", Boolean.FALSE);
-        assertXPathValue(context, "map[@name = 'a'] = map[@name = 'c']", Boolean.TRUE);
-        assertXPathValue(context, "map[@name = 'd'] = map[@name = 'b']", Boolean.TRUE);
-        assertXPathValue(context, "map[@name = 'd'] = map[@name = 'b']", Boolean.TRUE);
-        assertXPathValue(context, "not(map[@name = 'a'] = map[@name = 'b'])", Boolean.TRUE);
-        assertXPathValue(context, "not(map[@name = 'a'] = map[@name = 'c'])", Boolean.FALSE);
+        assertXPathValue(context, "map[@name_ = 'b'] != map[@name_ = 'c']", Boolean.TRUE);
+        assertXPathValue(context, "map[@name_ = 'a'] != map[@name_ = 'b']", Boolean.TRUE);
+        assertXPathValue(context, "map[@name_ = 'a'] != map[@name_ = 'c']", Boolean.FALSE);
+        assertXPathValue(context, "map[@name_ = 'a'] = map[@name_ = 'b']", Boolean.FALSE);
+        assertXPathValue(context, "map[@name_ = 'a'] = map[@name_ = 'c']", Boolean.TRUE);
+        assertXPathValue(context, "map[@name_ = 'd'] = map[@name_ = 'b']", Boolean.TRUE);
+        assertXPathValue(context, "map[@name_ = 'd'] = map[@name_ = 'b']", Boolean.TRUE);
+        assertXPathValue(context, "not(map[@name_ = 'a'] = map[@name_ = 'b'])", Boolean.TRUE);
+        assertXPathValue(context, "not(map[@name_ = 'a'] = map[@name_ = 'c'])", Boolean.FALSE);
     }
 }

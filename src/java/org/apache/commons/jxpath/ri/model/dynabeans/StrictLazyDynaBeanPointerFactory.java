@@ -77,7 +77,7 @@ public class StrictLazyDynaBeanPointerFactory implements NodePointerFactory {
 
                 protected boolean isActualProperty() {
                     return ((LazyDynaClass) lazyDynaBean.getDynaClass())
-                            .isDynaProperty(getPropertyName());
+                            .isDynaProperty(getPropertyName().getLocalName());
                 }
             };
         }

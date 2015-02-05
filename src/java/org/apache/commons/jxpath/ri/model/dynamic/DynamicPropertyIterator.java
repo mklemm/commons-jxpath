@@ -19,6 +19,7 @@ package org.apache.commons.jxpath.ri.model.dynamic;
 import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyIterator;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * @deprecated - no longer needed, as it is identical to PropertyIterator.
@@ -37,7 +38,7 @@ public class DynamicPropertyIterator extends PropertyIterator {
      */
     public DynamicPropertyIterator(
             PropertyOwnerPointer pointer,
-            String name,
+            PropertyIdentifier name,
             boolean reverse,
             NodePointer startWith) {
         super(pointer, name, reverse, startWith);

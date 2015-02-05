@@ -624,8 +624,8 @@ public abstract class NodePointer implements Pointer {
             return true;
         }
 
-        String namespace = getNamespaceURI(prefix);
-        return namespace != null && namespace.equals(getDefaultNamespaceURI());
+        String namespace = getNamespaceResolver().getNamespaceURI(prefix);
+        return namespace != null;
     }
 
     /**

@@ -39,12 +39,12 @@ public class EmbeddedColonMapKeysTest extends JXPathTestCase {
     }
 
     public void testSelectNodes() throws Exception {
-        assertXPathValueIterator(context, "/.[@name='foo:key']", list("value"));
+        assertXPathValueIterator(context, "/.[@name_='foo:key']", list("value"));
         assertXPathValueIterator(context, "/foo:key", list());
     }
 
     public void testSelectSingleNode() throws Exception {
-        assertXPathValue(context, "/.[@name='foo:key']", "value");
+        assertXPathValue(context, "/.[@name_='foo:key']", "value");
         assertXPathValueLenient(context, "/foo:key", null);
     }
 }

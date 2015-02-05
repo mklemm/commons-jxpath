@@ -19,6 +19,7 @@ package org.apache.commons.jxpath.ri.model.dynamic;
 import org.apache.commons.jxpath.ri.QName;
 import org.apache.commons.jxpath.ri.model.beans.BeanAttributeIterator;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * <code>DynamicAttributeIterator</code> is different from a regular
@@ -39,7 +40,7 @@ public class DynamicAttributeIterator extends BeanAttributeIterator {
         super(parent, name);
     }
 
-    protected void prepareForIndividualProperty(String name) {
+    protected void prepareForIndividualProperty(PropertyIdentifier name) {
          ((DynamicPropertyPointer) getPropertyPointer()).setPropertyName(name);
          super.prepareForIndividualProperty(name);
     }

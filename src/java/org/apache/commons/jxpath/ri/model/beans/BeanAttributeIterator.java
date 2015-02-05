@@ -18,6 +18,7 @@ package org.apache.commons.jxpath.ri.model.beans;
 
 import org.apache.commons.jxpath.ri.QName;
 import org.apache.commons.jxpath.ri.model.NodePointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * An iterator of attributes of a JavaBean. Returns bean properties as
@@ -38,12 +39,7 @@ public class BeanAttributeIterator extends PropertyIterator {
      */
     public BeanAttributeIterator(PropertyOwnerPointer parent, QName name) {
         super(
-            parent,
-            (name.getPrefix() == null
-                && (name.getName() == null || name.getName().equals("*")))
-                ? null
-                : name.toString(),
-            false,
+            parent, createName(parent, name),false,
             null);
         this.parent = parent;
         includeXmlLang =
@@ -67,4 +63,16 @@ public class BeanAttributeIterator extends PropertyIterator {
         }
         return super.setPosition(position);
     }
+
+	private static PropertyIdentifier createName(PropertyOwnerPointer parent, QName name) {
+		if(name.getName() == null || name.getName().equals("*")) {
+			return null;
+		} else if(name.getPrefix() == null) {
+			return PropertyIdentifier.create(parent.getNamespaceURI(), parent.getNamespaceResolver().getPrefix(parent.getNamespaceURI()), name.getName(), true);
+		} else if(name.getName().equals("name_")) {
+			return PropertyIdentifier.create(null,null,name.getName(), true);
+		} else {
+			return PropertyIdentifier.fromQName(parent.getNamespaceResolver(), name, true);
+		}
+	}
 }

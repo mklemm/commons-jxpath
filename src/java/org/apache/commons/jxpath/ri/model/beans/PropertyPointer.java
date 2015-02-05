@@ -22,6 +22,7 @@ import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathIntrospector;
 import org.apache.commons.jxpath.ri.QName;
 import org.apache.commons.jxpath.ri.model.NodePointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 import org.apache.commons.jxpath.util.ValueUtils;
 
 /**
@@ -33,16 +34,16 @@ import org.apache.commons.jxpath.util.ValueUtils;
  */
 public abstract class PropertyPointer extends NodePointer {
 	public static final int UNSPECIFIED_PROPERTY = Integer.MIN_VALUE;
-
+	private static final Object UNINITIALIZED = new Object();
 	/**
 	 * property index
 	 */
 	protected int propertyIndex = PropertyPointer.UNSPECIFIED_PROPERTY;
-
 	/**
 	 * owning object
 	 */
 	protected Object bean;
+	private Object value = PropertyPointer.UNINITIALIZED;
 
 	/**
 	 * Takes a javabean, a descriptor of a property of that object and
@@ -50,7 +51,7 @@ public abstract class PropertyPointer extends NodePointer {
 	 *
 	 * @param parent parent pointer
 	 */
-	public PropertyPointer(final NodePointer parent) {
+	protected PropertyPointer(final NodePointer parent) {
 		super(parent);
 	}
 
@@ -88,7 +89,7 @@ public abstract class PropertyPointer extends NodePointer {
 	}
 
 	public QName getName() {
-		return getPropertyName();
+		return getPropertyName().toQName(this.getNamespaceResolver());
 	}
 
 	/**
@@ -96,14 +97,14 @@ public abstract class PropertyPointer extends NodePointer {
 	 *
 	 * @return String property name.
 	 */
-	public abstract QName getPropertyName();
+	public abstract PropertyIdentifier getPropertyName();
 
 	/**
 	 * Set the property name.
 	 *
 	 * @param propertyName property name to set.
 	 */
-	public abstract void setPropertyName(QName propertyName);
+	public abstract void setPropertyName(PropertyIdentifier propertyName);
 
 	/**
 	 * Count the number of properties represented.
@@ -117,7 +118,7 @@ public abstract class PropertyPointer extends NodePointer {
 	 *
 	 * @return String[]
 	 */
-	public abstract QName[] getPropertyNames();
+	public abstract PropertyIdentifier[] getPropertyNames();
 
 	/**
 	 * Learn whether this pointer references an actual property.
@@ -129,10 +130,6 @@ public abstract class PropertyPointer extends NodePointer {
 	public boolean isActual() {
 		return isActualProperty() && super.isActual();
 	}
-
-	private static final Object UNINITIALIZED = new Object();
-
-	private Object value = PropertyPointer.UNINITIALIZED;
 
 	public Object getImmediateNode() {
 		if (this.value == PropertyPointer.UNINITIALIZED) {
@@ -211,7 +208,7 @@ public abstract class PropertyPointer extends NodePointer {
 			final Object value) {
 		final PropertyPointer prop = (PropertyPointer) clone();
 		if (name != null) {
-			prop.setPropertyName(name);
+			prop.setPropertyName(PropertyIdentifier.fromQName(getNamespaceResolver(), name, isAttribute()));
 		}
 		prop.setIndex(index);
 		return prop.createPath(context, value);
@@ -223,7 +220,7 @@ public abstract class PropertyPointer extends NodePointer {
 			final int index) {
 		final PropertyPointer prop = (PropertyPointer) clone();
 		if (name != null) {
-			prop.setPropertyName(name);
+			prop.setPropertyName(PropertyIdentifier.fromQName(getNamespaceResolver(), name, isAttribute()));
 		}
 		prop.setIndex(index);
 		return prop.createPath(context);
@@ -261,6 +258,16 @@ public abstract class PropertyPointer extends NodePointer {
 			final NodePointer pointer1,
 			final NodePointer pointer2) {
 		return getValuePointer().compareChildNodePointers(pointer1, pointer2);
+	}
+
+	/**
+	 * Returns the namespace URI associated with this Pointer.
+	 *
+	 * @return String uri
+	 */
+	@Override
+	public String getNamespaceURI() {
+		return this.getPropertyName().getNamespaceUri();
 	}
 
 }

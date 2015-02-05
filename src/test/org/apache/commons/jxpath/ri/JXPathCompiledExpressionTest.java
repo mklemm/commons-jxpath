@@ -110,7 +110,7 @@ public class JXPathCompiledExpressionTest extends JXPathTestCase {
     }
     
     public void testCoreOperationNameAttributeTest() {
-        assertXPathExpression("@name = 'bar'", NameAttributeTest.class);
+        assertXPathExpression("@name_ = 'bar'", NameAttributeTest.class);
     }
 
     public void testCoreOperationNotEqual() {

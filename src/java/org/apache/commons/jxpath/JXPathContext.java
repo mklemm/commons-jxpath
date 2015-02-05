@@ -149,7 +149,7 @@ import org.apache.commons.jxpath.util.KeyManagerUtils;
  *
  * <pre><blockquote>
  * String homeZipCode =
- *     (String) context.getValue("addresses[@name='home']/zipCode");
+ *     (String) context.getValue("addresses[@name_='home']/zipCode");
  * </blockquote></pre>
  *
  * In this case, the key can be an expression, e.g. a variable.<br>
@@ -363,8 +363,8 @@ import org.apache.commons.jxpath.util.KeyManagerUtils;
  * <ul>
  * <li> JXPath does not support DOM attributes for non-DOM objects. Even though
  * XPaths like "para[@type='warning']" are legitimate, they will always produce
- * empty results. The only attribute supported for JavaBeans is "name".  The
- * XPath "foo/bar" is equivalent to "foo[@name='bar']".
+ * empty results. The only attribute supported for JavaBeans is "name_".  The
+ * XPath "foo/bar" is equivalent to "foo[@name_='bar']".
  * </ul>
  *
  * See  <a href="http://www.w3schools.com/xpath">XPath Tutorial by

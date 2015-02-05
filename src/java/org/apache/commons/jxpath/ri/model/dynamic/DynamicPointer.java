@@ -17,7 +17,6 @@
 package org.apache.commons.jxpath.ri.model.dynamic;
 
 import java.util.Locale;
-
 import org.apache.commons.jxpath.DynamicPropertyHandler;
 import org.apache.commons.jxpath.JXPathIntrospector;
 import org.apache.commons.jxpath.ri.QName;
@@ -26,6 +25,7 @@ import org.apache.commons.jxpath.ri.model.NodePointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyIterator;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyPointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * A Pointer that points to an object with Dynamic Properties. It is used for
@@ -77,7 +77,7 @@ public class DynamicPointer extends PropertyOwnerPointer {
     }
 
     public NodeIterator createNodeIterator(
-                String property, boolean reverse, NodePointer startWith) {
+                PropertyIdentifier property, boolean reverse, NodePointer startWith) {
         return new PropertyIterator(this, property, reverse, startWith);
     }
 

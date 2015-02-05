@@ -19,6 +19,7 @@ package org.apache.commons.jxpath.ri.model.beans;
 import org.apache.commons.jxpath.JXPathException;
 import org.apache.commons.jxpath.ri.model.NodeIterator;
 import org.apache.commons.jxpath.ri.model.NodePointer;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * Iterates property values of an object pointed at with a {@link PropertyOwnerPointer}.
@@ -28,299 +29,299 @@ import org.apache.commons.jxpath.ri.model.NodePointer;
  * @version $Revision$ $Date$
  */
 public class PropertyIterator implements NodeIterator {
-    private boolean empty = false;
-    private boolean reverse;
-    private String name;
-    private int startIndex = 0;
-    private boolean targetReady = false;
-    private int position = 0;
-    private PropertyPointer propertyNodePointer;
-    private int startPropertyIndex;
+	private final boolean reverse;
+	private final PropertyIdentifier name;
+	private final PropertyPointer propertyNodePointer;
+	private boolean empty = false;
+	private int startIndex = 0;
+	private boolean targetReady = false;
+	private int position = 0;
+	private int startPropertyIndex = 0;
 
-    private boolean includeStart = false;
+	private boolean includeStart = false;
 
-    /**
-     * Create a new PropertyIterator.
-     * @param pointer owning pointer
-     * @param name property name
-     * @param reverse iteration order
-     * @param startWith beginning pointer
-     */
-    public PropertyIterator(
-        PropertyOwnerPointer pointer,
-        String name,
-        boolean reverse,
-        NodePointer startWith) {
-        propertyNodePointer =
-            (PropertyPointer) pointer.getPropertyPointer().clone();
-        this.name = name;
-        this.reverse = reverse;
-        this.includeStart = true;
-        if (reverse) {
-            this.startPropertyIndex = PropertyPointer.UNSPECIFIED_PROPERTY;
-            this.startIndex = -1;
-        }
-        if (startWith != null) {
-            while (startWith != null
-                    && startWith.getImmediateParentPointer() != pointer) {
-                startWith = startWith.getImmediateParentPointer();
-            }
-            if (startWith == null) {
-                throw new JXPathException(
-                    "PropertyIerator startWith parameter is "
-                        + "not a child of the supplied parent");
-            }
-            this.startPropertyIndex =
-                ((PropertyPointer) startWith).getPropertyIndex();
-            this.startIndex = startWith.getIndex();
-            if (this.startIndex == NodePointer.WHOLE_COLLECTION) {
-                this.startIndex = 0;
-            }
-            this.includeStart = false;
-            if (reverse && startIndex == -1) {
-                this.includeStart = true;
-            }
-        }
-    }
+	/**
+	 * Create a new PropertyIterator.
+	 *
+	 * @param pointer   owning pointer
+	 * @param name      property name
+	 * @param reverse   iteration order
+	 * @param startWith beginning pointer
+	 */
+	public PropertyIterator(
+			final PropertyOwnerPointer pointer,
+			final PropertyIdentifier name,
+			final boolean reverse,
+			NodePointer startWith) {
+		this.propertyNodePointer =
+				(PropertyPointer) pointer.getPropertyPointer().clone();
+		this.propertyNodePointer.setAttribute(name != null && name.isAttribute());
+		this.propertyNodePointer.setPropertyName(name);
+		this.name = name;
+		this.reverse = reverse;
+		this.includeStart = true;
+		if (reverse) {
+			this.startPropertyIndex = PropertyPointer.UNSPECIFIED_PROPERTY;
+			this.startIndex = -1;
+		}
+		if (startWith != null) {
+			while (startWith != null
+					&& startWith.getImmediateParentPointer() != pointer) {
+				startWith = startWith.getImmediateParentPointer();
+			}
+			if (startWith == null) {
+				throw new JXPathException(
+						"PropertyIterator startWith parameter is "
+								+ "not a child of the supplied parent");
+			}
+			this.startPropertyIndex =
+					((PropertyPointer) startWith).getPropertyIndex();
+			this.startIndex = startWith.getIndex();
+			if (this.startIndex == NodePointer.WHOLE_COLLECTION) {
+				this.startIndex = 0;
+			}
+			this.includeStart = false;
+			if (reverse && this.startIndex == -1) {
+				this.includeStart = true;
+			}
+		}
+	}
 
-    /**
-     * Get the property pointer.
-     * @return NodePointer
-     */
-    protected NodePointer getPropertyPointer() {
-        return propertyNodePointer;
-    }
+	/**
+	 * Get the property pointer.
+	 *
+	 * @return NodePointer
+	 */
+	protected NodePointer getPropertyPointer() {
+		return this.propertyNodePointer;
+	}
 
-    /**
-     * Reset property iteration.
-     */
-    public void reset() {
-        position = 0;
-        targetReady = false;
-    }
+	/**
+	 * Reset property iteration.
+	 */
+	public void reset() {
+		this.position = 0;
+		this.targetReady = false;
+	}
 
-    public NodePointer getNodePointer() {
-        if (position == 0) {
-            if (name != null) {
-                if (!targetReady) {
-                    prepareForIndividualProperty(name);
-                }
-                // If there is no such property - return null
-                if (empty) {
-                    return null;
-                }
-            }
-            else {
-                if (!setPosition(1)) {
-                    return null;
-                }
-                reset();
-            }
-        }
-        try {
-            return propertyNodePointer.getValuePointer();
-        }
-        catch (Throwable t) {
-            propertyNodePointer.handle(t);
-            NullPropertyPointer npp =
-                new NullPropertyPointer(
-                        propertyNodePointer.getImmediateParentPointer());
-            npp.setPropertyName(propertyNodePointer.getPropertyName());
-            npp.setIndex(propertyNodePointer.getIndex());
-            return npp.getValuePointer();
-        }
-    }
+	public NodePointer getNodePointer() {
+		if (this.position == 0) {
+			if (this.name != null) {
+				if (!this.targetReady) {
+					prepareForIndividualProperty(this.name);
+				}
+				// If there is no such property - return null
+				if (this.empty) {
+					return null;
+				}
+			} else {
+				if (!setPosition(1)) {
+					return null;
+				}
+				reset();
+			}
+		}
+		try {
+			return this.propertyNodePointer.getValuePointer();
+		} catch (final Throwable t) {
+			this.propertyNodePointer.handle(t);
+			final NullPropertyPointer npp =
+					new NullPropertyPointer(
+							this.propertyNodePointer.getImmediateParentPointer());
+			npp.setPropertyName(this.propertyNodePointer.getPropertyName());
+			npp.setIndex(this.propertyNodePointer.getIndex());
+			return npp.getValuePointer();
+		}
+	}
 
-    public int getPosition() {
-        return position;
-    }
+	public int getPosition() {
+		return this.position;
+	}
 
-    public boolean setPosition(int position) {
-        return name == null ? setPositionAllProperties(position) : setPositionIndividualProperty(position);
-    }
+	public boolean setPosition(final int position) {
+		return this.name == null ? setPositionAllProperties(position) : setPositionIndividualProperty(position);
+	}
 
-    /**
-     * Set position for an individual property.
-     * @param position int position
-     * @return whether this was a valid position
-     */
-    private boolean setPositionIndividualProperty(int position) {
-        this.position = position;
-        if (position < 1) {
-            return false;
-        }
+	/**
+	 * Set position for an individual property.
+	 *
+	 * @param position int position
+	 * @return whether this was a valid position
+	 */
+	private boolean setPositionIndividualProperty(final int position) {
+		this.position = position;
+		if (position < 1) {
+			return false;
+		}
 
-        if (!targetReady) {
-            prepareForIndividualProperty(name);
-        }
+		if (!this.targetReady) {
+			prepareForIndividualProperty(this.name);
+		}
 
-        if (empty) {
-            return false;
-        }
+		if (this.empty) {
+			return false;
+		}
 
-        int length = getLength();
-        int index;
-        if (!reverse) {
-            index = position + startIndex;
-            if (!includeStart) {
-                index++;
-            }
-            if (index > length) {
-                return false;
-            }
-        }
-        else {
-            int end = startIndex;
-            if (end == -1) {
-                end = length - 1;
-            }
-            index = end - position + 2;
-            if (!includeStart) {
-                index--;
-            }
-            if (index < 1) {
-                return false;
-            }
-        }
-        propertyNodePointer.setIndex(index - 1);
-        return true;
-    }
+		final int length = getLength();
+		int index;
+		if (!this.reverse) {
+			index = position + this.startIndex;
+			if (!this.includeStart) {
+				index++;
+			}
+			if (index > length) {
+				return false;
+			}
+		} else {
+			int end = this.startIndex;
+			if (end == -1) {
+				end = length - 1;
+			}
+			index = end - position + 2;
+			if (!this.includeStart) {
+				index--;
+			}
+			if (index < 1) {
+				return false;
+			}
+		}
+		this.propertyNodePointer.setIndex(index - 1);
+		return true;
+	}
 
-    /**
-     * Set position for all properties
-     * @param position int position
-     * @return whether this was a valid position
-     */
-    private boolean setPositionAllProperties(int position) {
-        this.position = position;
-        if (position < 1) {
-            return false;
-        }
+	/**
+	 * Set position for all properties
+	 *
+	 * @param position int position
+	 * @return whether this was a valid position
+	 */
+	private boolean setPositionAllProperties(final int position) {
+		this.position = position;
+		if (position < 1) {
+			return false;
+		}
 
-        int offset;
-        int count = propertyNodePointer.getPropertyCount();
-        if (!reverse) {
-            int index = 1;
-            for (int i = startPropertyIndex; i < count; i++) {
-                propertyNodePointer.setPropertyIndex(i);
-                int length = getLength();
-                if (i == startPropertyIndex) {
-                    length -= startIndex;
-                    if (!includeStart) {
-                        length--;
-                    }
-                    offset = startIndex + position - index;
-                    if (!includeStart) {
-                        offset++;
-                    }
-                }
-                else {
-                    offset = position - index;
-                }
-                if (index <= position && position < index + length) {
-                    propertyNodePointer.setIndex(offset);
-                    return true;
-                }
-                index += length;
-            }
-        }
-        else {
-            int index = 1;
-            int start = startPropertyIndex;
-            if (start == PropertyPointer.UNSPECIFIED_PROPERTY) {
-                start = count - 1;
-            }
-            for (int i = start; i >= 0; i--) {
-                propertyNodePointer.setPropertyIndex(i);
-                int length = getLength();
-                if (i == startPropertyIndex) {
-                    int end = startIndex;
-                    if (end == -1) {
-                        end = length - 1;
-                    }
-                    length = end + 1;
-                    offset = end - position + 1;
-                    if (!includeStart) {
-                        offset--;
-                        length--;
-                    }
-                }
-                else {
-                    offset = length - (position - index) - 1;
-                }
+		int offset;
+		final int count = this.propertyNodePointer.getPropertyCount();
+		if (!this.reverse) {
+			int index = 1;
+			for (int i = this.startPropertyIndex; i < count; i++) {
+				this.propertyNodePointer.setPropertyIndex(i);
+				int length = getLength();
+				if (i == this.startPropertyIndex) {
+					length -= this.startIndex;
+					if (!this.includeStart) {
+						length--;
+					}
+					offset = this.startIndex + position - index;
+					if (!this.includeStart) {
+						offset++;
+					}
+				} else {
+					offset = position - index;
+				}
+				if (index <= position && position < index + length) {
+					this.propertyNodePointer.setIndex(offset);
+					return true;
+				}
+				index += length;
+			}
+		} else {
+			int index = 1;
+			int start = this.startPropertyIndex;
+			if (start == PropertyPointer.UNSPECIFIED_PROPERTY) {
+				start = count - 1;
+			}
+			for (int i = start; i >= 0; i--) {
+				this.propertyNodePointer.setPropertyIndex(i);
+				int length = getLength();
+				if (i == this.startPropertyIndex) {
+					int end = this.startIndex;
+					if (end == -1) {
+						end = length - 1;
+					}
+					length = end + 1;
+					offset = end - position + 1;
+					if (!this.includeStart) {
+						offset--;
+						length--;
+					}
+				} else {
+					offset = length - (position - index) - 1;
+				}
 
-                if (index <= position && position < index + length) {
-                    propertyNodePointer.setIndex(offset);
-                    return true;
-                }
-                index += length;
-            }
-        }
-        return false;
-    }
+				if (index <= position && position < index + length) {
+					this.propertyNodePointer.setIndex(offset);
+					return true;
+				}
+				index += length;
+			}
+		}
+		return false;
+	}
 
-    /**
-     * Prepare for an individual property.
-     * @param name property name
-     */
-    protected void prepareForIndividualProperty(String name) {
-        targetReady = true;
-        empty = true;
+	/**
+	 * Prepare for an individual property.
+	 *
+	 * @param name property name
+	 */
+	protected void prepareForIndividualProperty(final PropertyIdentifier name) {
+		this.targetReady = true;
+		this.empty = true;
 
-        String[] names = propertyNodePointer.getPropertyNames();
-        if (!reverse) {
-            if (startPropertyIndex == PropertyPointer.UNSPECIFIED_PROPERTY) {
-                startPropertyIndex = 0;
-            }
-            if (startIndex == NodePointer.WHOLE_COLLECTION) {
-                startIndex = 0;
-            }
-            for (int i = startPropertyIndex; i < names.length; i++) {
-                if (names[i].equals(name)) {
-                    propertyNodePointer.setPropertyIndex(i);
-                    if (i != startPropertyIndex) {
-                        startIndex = 0;
-                        includeStart = true;
-                    }
-                    empty = false;
-                    break;
-                }
-            }
-        }
-        else {
-            if (startPropertyIndex == PropertyPointer.UNSPECIFIED_PROPERTY) {
-                startPropertyIndex = names.length - 1;
-            }
-            if (startIndex == NodePointer.WHOLE_COLLECTION) {
-                startIndex = -1;
-            }
-            for (int i = startPropertyIndex; i >= 0; i--) {
-                if (names[i].equals(name)) {
-                    propertyNodePointer.setPropertyIndex(i);
-                    if (i != startPropertyIndex) {
-                        startIndex = -1;
-                        includeStart = true;
-                    }
-                    empty = false;
-                    break;
-                }
-            }
-        }
-    }
+		final PropertyIdentifier[] names = this.propertyNodePointer.getPropertyNames();
+		if (!this.reverse) {
+			if (this.startPropertyIndex == PropertyPointer.UNSPECIFIED_PROPERTY) {
+				this.startPropertyIndex = 0;
+			}
+			if (this.startIndex == NodePointer.WHOLE_COLLECTION) {
+				this.startIndex = 0;
+			}
+			for (int i = this.startPropertyIndex; i < names.length; i++) {
+				if (names[i].equals(name)) {
+					this.propertyNodePointer.setPropertyIndex(i);
+					if (i != this.startPropertyIndex) {
+						this.startIndex = 0;
+						this.includeStart = true;
+					}
+					this.empty = false;
+					break;
+				}
+			}
+		} else {
+			if (this.startPropertyIndex == PropertyPointer.UNSPECIFIED_PROPERTY) {
+				this.startPropertyIndex = names.length - 1;
+			}
+			if (this.startIndex == NodePointer.WHOLE_COLLECTION) {
+				this.startIndex = -1;
+			}
+			for (int i = this.startPropertyIndex; i >= 0; i--) {
+				if (names[i].equals(name)) {
+					this.propertyNodePointer.setPropertyIndex(i);
+					if (i != this.startPropertyIndex) {
+						this.startIndex = -1;
+						this.includeStart = true;
+					}
+					this.empty = false;
+					break;
+				}
+			}
+		}
+	}
 
-    /**
-     * Computes length for the current pointer - ignores any exceptions.
-     * @return length
-     */
-    private int getLength() {
-        int length;
-        try {
-            length = propertyNodePointer.getLength(); // TBD: cache length
-        }
-        catch (Throwable t) {
-            propertyNodePointer.handle(t);
-            length = 0;
-        }
-        return length;
-    }
+	/**
+	 * Computes length for the current pointer - ignores any exceptions.
+	 *
+	 * @return length
+	 */
+	private int getLength() {
+		int length;
+		try {
+			length = this.propertyNodePointer.getLength(); // TBD: cache length
+		} catch (final Throwable t) {
+			this.propertyNodePointer.handle(t);
+			length = 0;
+		}
+		return length;
+	}
 }

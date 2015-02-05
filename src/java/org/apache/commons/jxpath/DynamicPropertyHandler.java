@@ -30,7 +30,7 @@ package org.apache.commons.jxpath;
  * JXPath allows access to dynamic properties using these three formats:
  * <ul>
  * <li><code>"myMap/myKey"</code></li>
- * <li><code>"myMap[@name = 'myKey']"</code></li>
+ * <li><code>"myMap[@name_ = 'myKey']"</code></li>
  * <li><code>"myMap[name(.) = 'myKey']"</code></li>
  * </ul>
  *

@@ -116,11 +116,11 @@ public class ContainerModelTest extends JXPathTestCase {
         JXPathContext context = JXPathContext.newContext(map);
         
         assertXPathValueAndPointer(context, "/container", 
-                list, "/.[@name='container']");
+                list, "/.[@name_='container']");
         assertXPathValueAndPointer(context, "/container[1]",
-                list.get(0), "/.[@name='container'][1]");
+                list.get(0), "/.[@name_='container'][1]");
         assertXPathValueAndPointer(context, "/container[2]",
-                list.get(1), "/.[@name='container'][2]");
+                list.get(1), "/.[@name_='container'][2]");
         
         assertXPathSetValue(context, "/container[1]", "baz");
         assertEquals("Checking setValue(index)", "baz", list.get(0));

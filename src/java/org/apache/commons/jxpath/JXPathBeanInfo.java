@@ -16,11 +16,10 @@
  */
 package org.apache.commons.jxpath;
 
-import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.util.List;
-
-import org.apache.commons.jxpath.ri.QName;
+import org.apache.commons.jxpath.util.JXPathPropertyDescriptor;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * JXPathBeanInfo  is similar to {@link java.beans.BeanInfo} in that it describes
@@ -39,46 +38,53 @@ import org.apache.commons.jxpath.ri.QName;
  */
 public interface JXPathBeanInfo extends Serializable {
 
-    /**
-     * Returns true if objects of this class are treated as atomic
-     * objects which have no properties of their own.
-     * For example, {@link String} and {@link Number} are atomic.
-     * @return boolean
-     */
-    boolean isAtomic();
+	/**
+	 * Returns true if objects of this class are treated as atomic
+	 * objects which have no properties of their own.
+	 * For example, {@link String} and {@link Number} are atomic.
+	 *
+	 * @return boolean
+	 */
+	boolean isAtomic();
 
-    /**
-     * Returns true if the objects of this class have dynamic properties
-     * (e.g. java.util.Map). If this method returns true, {@link #getPropertyDescriptors}
-     * should return null and {@link #getDynamicPropertyHandlerClass} should return
-     * a valid class name.  An object cannot have both static and dynamic
-     * properties at the same time.
-     * @return boolean
-     */
-    boolean isDynamic();
+	/**
+	 * Returns true if the objects of this class have dynamic properties
+	 * (e.g. java.util.Map). If this method returns true, {@link #getPropertyDescriptors}
+	 * should return null and {@link #getDynamicPropertyHandlerClass} should return
+	 * a valid class name.  An object cannot have both static and dynamic
+	 * properties at the same time.
+	 *
+	 * @return boolean
+	 */
+	boolean isDynamic();
 
-    /**
-     * Returns a list of property descriptors for the beans described by this
-     * bean info object.  Returns null for atomic beans.
-     * @return PropertyDescriptor[]
-     */
-    List<PropertyXMLMapping> getPropertyDescriptors();
+	/**
+	 * Returns a list of property descriptors for the beans described by this
+	 * bean info object.  Returns null for atomic beans.
+	 *
+	 * @return PropertyDescriptor[]
+	 */
+	List<JXPathPropertyDescriptor> getPropertyDescriptors();
 
-    /**
-     * Returns a PropertyDescriptor for the specified name or null if there
-     * is no such property.
-     * @param propertyName property name
-     * @return PropertyDescriptor
-     */
-    PropertyXMLMapping getPropertyDescriptor(String propertyName);
-	PropertyXMLMapping getPropertyDescriptor(final QName xmlName, final boolean attribute);
+	/**
+	 * Returns a PropertyDescriptor for the specified name or null if there
+	 * is no such property.
+	 *
+	 * @param propertyName property name
+	 * @return PropertyDescriptor
+	 */
+	JXPathPropertyDescriptor getPropertyDescriptor(final String propertyName);
 
-    /**
-     * For dynamic objects, returns the class implementing
-     * the {@link DynamicPropertyHandler} interface. That class can
-     * be used to access dynamic properties.
-     * @return Class
-     */
-    Class getDynamicPropertyHandlerClass();
+	JXPathPropertyDescriptor getPropertyDescriptor(final PropertyIdentifier propertyIdentifier);
 
+	/**
+	 * For dynamic objects, returns the class implementing
+	 * the {@link DynamicPropertyHandler} interface. That class can
+	 * be used to access dynamic properties.
+	 *
+	 * @return Class
+	 */
+	Class getDynamicPropertyHandlerClass();
+
+	String getTargetNamespace();
 }

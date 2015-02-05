@@ -90,7 +90,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "$map/string",
             "string",
-            "$map[@name='string']");
+            "$map[@name_='string']");
     }
 
     public void testVarList() {
@@ -140,7 +140,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/string",
             "string",
-            "/map[@name='string']");
+            "/map[@name_='string']");
     }
 
     public void testBeanList() {
@@ -178,7 +178,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/string",
             "string",
-            "/map[@name='string']");
+            "/map[@name_='string']");
     }
 
     public void testMapBean() {
@@ -186,7 +186,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/bean/int",
             new Integer(1),
-            "/map[@name='bean']/int");
+            "/map[@name_='bean']/int");
     }
 
     public void testMapMap() {
@@ -194,7 +194,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/map/string",
             "string",
-            "/map[@name='map'][@name='string']");
+            "/map[@name_='map'][@name_='string']");
     }
 
     public void testMapList() {
@@ -202,7 +202,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/list[1]",
             "string",
-            "/map[@name='list'][1]");
+            "/map[@name_='list'][1]");
     }
 
     public void testMapDocument() {
@@ -210,7 +210,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/document/vendor/location/address/city",
             "Fruit Market",
-            "/map[@name='document']"
+            "/map[@name_='document']"
                 + "/vendor[1]/location[2]/address[1]/city[1]");
     }
 
@@ -219,7 +219,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/element/location/address/city",
             "Fruit Market",
-            "/map[@name='element']/location[2]/address[1]/city[1]");
+            "/map[@name_='element']/location[2]/address[1]/city[1]");
     }
 
     public void testMapContainer() {
@@ -227,7 +227,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "map/container/vendor/location/address/city",
             "Fruit Market",
-            "/map[@name='container']"
+            "/map[@name_='container']"
                 + "/vendor[1]/location[2]/address[1]/city[1]");
     }
 
@@ -250,7 +250,7 @@ public class MixedModelTest extends JXPathTestCase {
             context,
             "list[3]/string",
             "string",
-            "/list[3][@name='string']");
+            "/list[3][@name_='string']");
     }
 
     public void testListList() {
@@ -342,16 +342,16 @@ public class MixedModelTest extends JXPathTestCase {
 
         assertXPathCreatePath(
             context,
-            "/map[@name='TestKey5']/nestedBean/int",
+            "/map[@name_='TestKey5']/nestedBean/int",
             new Integer(1),
-            "/map[@name='TestKey5']/nestedBean/int");
+            "/map[@name_='TestKey5']/nestedBean/int");
 
         bean.setMap(null);
         assertXPathCreatePath(
             context,
-            "/map[@name='TestKey5']/beans[2]/int",
+            "/map[@name_='TestKey5']/beans[2]/int",
             new Integer(1),
-            "/map[@name='TestKey5']/beans[2]/int");
+            "/map[@name_='TestKey5']/beans[2]/int");
     }
 
     /**
@@ -410,7 +410,7 @@ public class MixedModelTest extends JXPathTestCase {
         assertXPathPointerIterator(
             context,
             "/vec",
-            list("/.[@name='vec'][1]", "/.[@name='vec'][2]"));
+            list("/.[@name_='vec'][1]", "/.[@name_='vec'][2]"));
     }
 
     public void testErrorProperty() {

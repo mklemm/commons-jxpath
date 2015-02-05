@@ -72,7 +72,7 @@ public abstract class Path extends Expression {
     }
 
     /**
-     * Recognizes paths formatted as <code>foo/bar[3]/baz[@name = 'biz']</code>.
+     * Recognizes paths formatted as <code>foo/bar[3]/baz[@name_ = 'biz']</code>.
      * The evaluation of such "simple" paths is optimized and
      * streamlined.
      * @return <code>true</code> if this path is simple

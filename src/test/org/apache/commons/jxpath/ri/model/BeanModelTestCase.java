@@ -34,6 +34,7 @@ import org.apache.commons.jxpath.ri.compiler.TestFunctions;
 import org.apache.commons.jxpath.ri.model.beans.PropertyOwnerPointer;
 import org.apache.commons.jxpath.ri.model.beans.PropertyPointer;
 import org.apache.commons.jxpath.ri.model.dynabeans.DynaBeanModelTest;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * Abstract superclass for Bean access with JXPath.
@@ -177,9 +178,9 @@ public abstract class BeanModelTestCase extends JXPathTestCase {
     }
 
     private int relativeProperty(PropertyPointer holder, int offset) {
-        String[] names = holder.getPropertyNames();
+        PropertyIdentifier[] names = holder.getPropertyNames();
         for (int i = 0; i < names.length; i++) {
-            if (names[i].equals("integers")) {
+            if (names[i].getLocalName().equals("integers")) {
                 return i + offset;
             }
         }
@@ -584,11 +585,11 @@ public abstract class BeanModelTestCase extends JXPathTestCase {
      * objects appear to have.
      */
     public void testAttributeName() {
-        assertXPathValue(context, "nestedBean[@name = 'int']", new Integer(1));
+        assertXPathValue(context, "nestedBean[@name_ = 'int']", new Integer(1));
 
         assertXPathPointer(
             context,
-            "nestedBean[@name = 'int']",
+            "nestedBean[@name_ = 'int']",
             "/nestedBean/int");
     }
 

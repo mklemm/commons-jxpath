@@ -169,4 +169,9 @@ public class BeanPointer extends PropertyOwnerPointer {
         }
         return "/";
     }
+
+	@Override
+	public String getNamespaceURI() {
+		return this.beanInfo.getTargetNamespace();
+	}
 }

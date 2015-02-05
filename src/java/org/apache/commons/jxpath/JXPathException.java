@@ -24,95 +24,41 @@ package org.apache.commons.jxpath;
  */
 
 public class JXPathException extends RuntimeException {
-    private static final long serialVersionUID = 4306409701468017766L;
+	private static final long serialVersionUID = 4306409701468017766L;
 
-    /** @serial */
-    private Throwable exception;
+	public JXPathException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 
-    /**
-     * Create a new <code>JXPathException</code> with no
-     * detail mesage.
-     */
+	public JXPathException() {
+	}
 
-     public JXPathException() {
-         super();
-         this.exception = null;
-     }
+	public JXPathException(final String message) {
+		super(message);
+	}
 
-    /**
-     * Create a new <code>JXPathException</code> with
-     * the <code>String </code> specified as an error message.
-     *
-     * @param msg The error message for the exception.
-     */
-    public JXPathException(String msg) {
-        super(msg);
-        this.exception = null;
-    }
+	public JXPathException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
+
+	public JXPathException(final Throwable t) {
+		super(t.getMessage(), t);
+		this.setStackTrace(t.getStackTrace());
+	}
 
 
-    /**
-     * Create a new <code>JXPathException</code> with a
-     * given <code>Throwable</code> base cause of the error.
-     *
-     * @param e The exception to be encapsulated in a
-     * JXPathException.
-     */
-    public JXPathException(Throwable e) {
-        super(e.toString());
-        this.exception = e;
-    }
+	public String toString() {
+		final StringBuilder temp = new StringBuilder("JXPathException: ");
+		if(this.getCause() != null) {
+			temp.append(this.getCause().getClass().getName());
+		}
+		final String message = this.getLocalizedMessage();
+		if (message != null) {
+			temp.append(": ").append(message);
+		}
 
-    /**
-     * Create a new <code>JXPathException</code> with the
-     * given <code>Exception</code> base cause and detail message.
-     *
-     * @param msg The detail message.
-     * @param e The exception to be encapsulated in a JXPathException
-     */
-    public JXPathException(String msg, Throwable e) {
-        super(msg);
-        this.exception = e;
-    }
+		return temp.toString();
+	}
 
-
-    /**
-     * Return the message (if any) for this error . If there is no
-     * message for the exception and there is an encapsulated
-     * exception then the message of that exception will be returned.
-     *
-     * @return The error message.
-     */
-    public String getMessage() {
-        String message = super.getMessage();
-        if (exception == null) {
-            return message;
-        }
-        StringBuffer buf = new StringBuffer();
-        if (message != null) {
-            buf.append(message).append("; ");
-        }
-        String eMsg = exception.getMessage();
-        buf.append(eMsg == null ? exception.getClass().getName() : eMsg);
-        return buf.toString();
-    }
-
-    /**
-     * Return the actual exception (if any) that caused this exception to
-     * be raised.
-     *
-     * @return The encapsulated exception, or null if there is none.
-     */
-    public Throwable getException() {
-        return exception;
-    }
-
-    /**
-     * Same as {@link #getException() getException()}
-     * @return The encapsulated exception, or null if there is none.
-     */
-    public Throwable getCause() {
-        return exception;
-    }
 
 }

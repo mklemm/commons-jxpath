@@ -21,14 +21,13 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.jxpath.ri.QName;
+import org.apache.commons.jxpath.util.JXPathPropertyDescriptor;
+import org.apache.commons.jxpath.util.PropertyIdentifier;
 
 /**
  * An implementation of JXPathBeanInfo based on JavaBeans' BeanInfo. Properties
@@ -43,19 +42,52 @@ import org.apache.commons.jxpath.ri.QName;
 public class JXPathBasicBeanInfo implements JXPathBeanInfo {
 	private static final long serialVersionUID = -3863803443111484155L;
 
-	private static final Comparator<PropertyXMLMapping> PROPERTY_DESCRIPTOR_COMPARATOR = new Comparator<PropertyXMLMapping>() {
+	private static final Comparator<JXPathPropertyDescriptor> PROPERTY_DESCRIPTOR_COMPARATOR = new Comparator<JXPathPropertyDescriptor>() {
 		@Override
-		public int compare(final PropertyXMLMapping left, final PropertyXMLMapping right) {
-			return left.getName().compareTo(right.getName());
+		public int compare(final JXPathPropertyDescriptor left, final JXPathPropertyDescriptor right) {
+			return left.getPropertyDescriptor().getName().compareTo(right.getPropertyDescriptor().getName());
 		}
 	};
 
 	private boolean atomic = false;
-	private final Class clazz;
-	private Class dynamicPropertyHandlerClass;
-	private transient List<PropertyXMLMapping> propertyDescriptors;
-	private transient Map<String, PropertyXMLMapping> propertyDescriptorMap;
+	protected final Class<?> clazz;
+	private Class<?> dynamicPropertyHandlerClass = null;
+	private transient List<JXPathPropertyDescriptor> propertyDescriptors = null;
+	private transient Map<String, JXPathPropertyDescriptor> descriptorsByPropertyName = null;
+	private transient Map<String, JXPathPropertyDescriptor> descriptorsByXmlName = null;
 
+	private void initCollections() {
+		if (this.propertyDescriptors == null) {
+					if (this.clazz == Object.class) {
+						this.propertyDescriptors = Collections.emptyList();
+					} else {
+						try {
+							final BeanInfo bi;
+							if (this.clazz.isInterface()) {
+								bi = Introspector.getBeanInfo(this.clazz);
+							} else {
+								bi = Introspector.getBeanInfo(this.clazz, Object.class);
+							}
+							final List<JXPathPropertyDescriptor> descriptors = new ArrayList<>(bi.getPropertyDescriptors().length);
+							for(final PropertyDescriptor propertyDescriptor : bi.getPropertyDescriptors()) {
+								descriptors.add(createMappingDescriptor(propertyDescriptor));
+							}
+							Collections.sort(descriptors, getPropertyOrderComparator());
+							final Map<String,JXPathPropertyDescriptor> descriptorsByPropertyName = new LinkedHashMap<>(descriptors.size());
+							final Map<String,JXPathPropertyDescriptor> descriptorsByXmlName = new LinkedHashMap<>(descriptors.size());
+							for(final JXPathPropertyDescriptor propertyDescriptor:descriptors) {
+								descriptorsByXmlName.put(createKey(propertyDescriptor.getId()), propertyDescriptor);
+								descriptorsByPropertyName.put(propertyDescriptor.getPropertyDescriptor().getName(), propertyDescriptor);
+							}
+							this.propertyDescriptors = Collections.unmodifiableList(descriptors);
+							this.descriptorsByPropertyName = Collections.unmodifiableMap(descriptorsByPropertyName);
+							this.descriptorsByXmlName = Collections.unmodifiableMap(descriptorsByXmlName);
+						} catch (final IntrospectionException ex) {
+							throw new JXPathException(ex);
+						}
+					}
+				}
+	}
 	/**
 	 * Create a new JXPathBasicBeanInfo.
 	 *
@@ -108,59 +140,35 @@ public class JXPathBasicBeanInfo implements JXPathBeanInfo {
 		return this.dynamicPropertyHandlerClass != null;
 	}
 
-	protected Comparator<PropertyXMLMapping> getPropertyOrderComparator() {
-		return PROPERTY_DESCRIPTOR_COMPARATOR;
+	protected Comparator<JXPathPropertyDescriptor> getPropertyOrderComparator() {
+		return JXPathBasicBeanInfo.PROPERTY_DESCRIPTOR_COMPARATOR;
 	}
 
-	protected PropertyXMLMapping createMappingDescriptor(final PropertyDescriptor propertyDescriptor) {
-		return new PropertyXMLMapping(propertyDescriptor, "", propertyDescriptor.getName(), false);
+	protected JXPathPropertyDescriptor createMappingDescriptor(final PropertyDescriptor propertyDescriptor) {
+		return new JXPathPropertyDescriptor(new PropertyIdentifier(null, propertyDescriptor.getName(), false), propertyDescriptor);
 	}
 
-	public synchronized List<PropertyXMLMapping> getPropertyDescriptors() {
-		if (this.propertyDescriptors == null) {
-			if (this.clazz == Object.class) {
-				this.propertyDescriptors = Collections.emptyList();
-			} else {
-				try {
-					BeanInfo bi = null;
-					if (this.clazz.isInterface()) {
-						bi = Introspector.getBeanInfo(this.clazz);
-					} else {
-						bi = Introspector.getBeanInfo(this.clazz, Object.class);
-					}
-					final List<PropertyXMLMapping> descriptors = new ArrayList<>(bi.getPropertyDescriptors().length);
-					for(final PropertyDescriptor propertyDescriptor : bi.getPropertyDescriptors()) {
-						descriptors.add(createMappingDescriptor(propertyDescriptor));
-					}
-					Collections.sort(this.propertyDescriptors, JXPathBasicBeanInfo.PROPERTY_DESCRIPTOR_COMPARATOR);
-					this.propertyDescriptors = Collections.unmodifiableList(descriptors);
-				} catch (final IntrospectionException ex) {
-					ex.printStackTrace();
-					return Collections.emptyList();
-				}
-			}
-		}
+
+	public synchronized List<JXPathPropertyDescriptor> getPropertyDescriptors() {
+		initCollections();
 		return this.propertyDescriptors;
 	}
 
-	public synchronized PropertyXMLMapping getPropertyDescriptor(final String propertyName) {
-		if (this.propertyDescriptorMap == null) {
-			this.propertyDescriptorMap = new HashMap<>();
-			final List<PropertyXMLMapping> pds = getPropertyDescriptors();
-			for (final PropertyXMLMapping pd : pds) {
-				this.propertyDescriptorMap.put(pd.getName(), pd);
-			}
-		}
-		return this.propertyDescriptorMap.get(propertyName);
+	@Override
+	public JXPathPropertyDescriptor getPropertyDescriptor(final String propertyName) {
+		initCollections();
+		return this.descriptorsByPropertyName.get(propertyName);
 	}
-
-
 
 	@Override
-	public PropertyXMLMapping getPropertyDescriptor(final QName xmlPropertyName, final boolean attribute) {
-		return getPropertyDescriptor(xmlPropertyName.getName());
+	public JXPathPropertyDescriptor getPropertyDescriptor(final PropertyIdentifier propertyIdentifier) {
+		initCollections();
+		return this.descriptorsByXmlName.get(createKey(propertyIdentifier));
 	}
 
+	protected String createKey(final PropertyIdentifier propertyIdentifier) {
+		return propertyIdentifier.getLocalName();
+	}
 
 	/**
 	 * For a dynamic class, returns the corresponding DynamicPropertyHandler
@@ -172,6 +180,10 @@ public class JXPathBasicBeanInfo implements JXPathBeanInfo {
 		return this.dynamicPropertyHandlerClass;
 	}
 
+	@Override
+	public String getTargetNamespace() {
+		return null;
+	}
 
 	public String toString() {
 		final StringBuilder buffer = new StringBuilder();
@@ -185,13 +197,14 @@ public class JXPathBasicBeanInfo implements JXPathBeanInfo {
 		}
 		buffer.append(", properties = ");
 
-		for (final PropertyXMLMapping jpd : getPropertyDescriptors()) {
+		for (final JXPathPropertyDescriptor jpd : getPropertyDescriptors()) {
 			buffer.append("\n    ");
 			buffer.append(jpd.getPropertyDescriptor().getPropertyType());
 			buffer.append(": ");
-			buffer.append(jpd.getName());
+			buffer.append(jpd.getPropertyDescriptor().getName());
 		}
 		buffer.append("]");
 		return buffer.toString();
 	}
+
 }

@@ -83,7 +83,7 @@ public interface Pointer extends Cloneable, Comparable, Serializable {
      * the concrete location(s) of the result of a search performed by JXPath.
      * If an object in the pointer's path is a Dynamic Property object (like a
      * Map), the asPath method generates an XPath that looks like this: <code>"
-     * /departments[@name = 'HR']/employees[3]"</code>.
+     * /departments[@name_ = 'HR']/employees[3]"</code>.
      * @return String path
      */
     String asPath();

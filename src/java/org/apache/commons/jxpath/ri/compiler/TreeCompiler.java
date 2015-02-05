@@ -25,7 +25,7 @@ import org.apache.commons.jxpath.ri.QName;
  */
 public class TreeCompiler implements Compiler {
 
-    private static final QName QNAME_NAME = new QName(null, "name");
+    private static final QName QNAME_NAME = new QName(null, "name_");
 
     public Object number(String value) {
         return new Constant(new Double(value));

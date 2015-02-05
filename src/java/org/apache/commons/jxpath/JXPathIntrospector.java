@@ -18,12 +18,10 @@ package org.apache.commons.jxpath;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.ServiceLoader;
-
-import org.apache.commons.jxpath.ri.axes.NamespaceContext;
 import org.apache.commons.jxpath.util.ClassLoaderUtil;
 
 /**
@@ -34,212 +32,213 @@ import org.apache.commons.jxpath.util.ClassLoaderUtil;
  * @version $Revision$ $Date$
  */
 public class JXPathIntrospector {
-    private static final JXPathBeanInfoFactory BEAN_INFO_FACTORY;
+	private static final JXPathBeanInfoFactory BEAN_INFO_FACTORY;
 
-    static {
-        final Iterator<JXPathBeanInfoFactory> serviceLoaderIterator = ServiceLoader.load(JXPathBeanInfoFactory.class).iterator();
-        if(serviceLoaderIterator.hasNext()) {
-            BEAN_INFO_FACTORY = serviceLoaderIterator.next();
-        } else {
-            BEAN_INFO_FACTORY = new JXPathBeanInfoFactory() {
-                @Override
-                public JXPathBeanInfo createBeanInfo(final javax.xml.namespace.NamespaceContext namespaceContext, final Class clazz) {
-                    return new JXPathBasicBeanInfo(clazz);
-                }
-            };
-        }
-    }
+	static {
+		final Iterator<JXPathBeanInfoFactory> serviceLoaderIterator = ServiceLoader.load(JXPathBeanInfoFactory.class).iterator();
+		if (serviceLoaderIterator.hasNext()) {
+			BEAN_INFO_FACTORY = serviceLoaderIterator.next();
+		} else {
+			BEAN_INFO_FACTORY = new JXPathBeanInfoFactory() {
+				@Override
+				public JXPathBeanInfo createBeanInfo(final Class clazz) {
+					return new JXPathBasicBeanInfo(clazz);
+				}
+			};
+		}
+	}
 
-    private static Map byClass = Collections.synchronizedMap(new HashMap());
-    private static Map byInterface = Collections.synchronizedMap(new HashMap());
+	private static final Map byClass = Collections.synchronizedMap(new HashMap());
+	private static final Map byInterface = Collections.synchronizedMap(new HashMap());
 
-    static {
-        registerAtomicClass(Class.class);
-        registerAtomicClass(Boolean.TYPE);
-        registerAtomicClass(Boolean.class);
-        registerAtomicClass(Byte.TYPE);
-        registerAtomicClass(Byte.class);
-        registerAtomicClass(Character.TYPE);
-        registerAtomicClass(Character.class);
-        registerAtomicClass(Short.TYPE);
-        registerAtomicClass(Short.class);
-        registerAtomicClass(Integer.TYPE);
-        registerAtomicClass(Integer.class);
-        registerAtomicClass(Long.TYPE);
-        registerAtomicClass(Long.class);
-        registerAtomicClass(Float.TYPE);
-        registerAtomicClass(Float.class);
-        registerAtomicClass(Double.TYPE);
-        registerAtomicClass(Double.class);
-        registerAtomicClass(String.class);
-        registerAtomicClass(Date.class);
-        registerAtomicClass(java.sql.Date.class);
-        registerAtomicClass(java.sql.Time.class);
-        registerAtomicClass(java.sql.Timestamp.class);
+	static {
+		registerAtomicClass(Class.class);
+		registerAtomicClass(Boolean.TYPE);
+		registerAtomicClass(Boolean.class);
+		registerAtomicClass(Byte.TYPE);
+		registerAtomicClass(Byte.class);
+		registerAtomicClass(Character.TYPE);
+		registerAtomicClass(Character.class);
+		registerAtomicClass(Short.TYPE);
+		registerAtomicClass(Short.class);
+		registerAtomicClass(Integer.TYPE);
+		registerAtomicClass(Integer.class);
+		registerAtomicClass(Long.TYPE);
+		registerAtomicClass(Long.class);
+		registerAtomicClass(Float.TYPE);
+		registerAtomicClass(Float.class);
+		registerAtomicClass(Double.TYPE);
+		registerAtomicClass(Double.class);
+		registerAtomicClass(String.class);
+		registerAtomicClass(Date.class);
+		registerAtomicClass(java.sql.Date.class);
+		registerAtomicClass(java.sql.Time.class);
+		registerAtomicClass(java.sql.Timestamp.class);
 
-        registerDynamicClass(Map.class, MapDynamicPropertyHandler.class);
-    }
+		registerDynamicClass(Map.class, MapDynamicPropertyHandler.class);
+	}
 
-    /**
-     * Automatically creates and registers a JXPathBeanInfo object
-     * for the specified class. That object returns true to isAtomic().
-     * @param beanClass to register
-     */
-    public static void registerAtomicClass(Class beanClass) {
-        synchronized (JXPathIntrospector.byClass) {
-	        JXPathIntrospector.byClass.put(beanClass, new JXPathBasicBeanInfo(beanClass, true));
-        }
-    }
+	/**
+	 * Automatically creates and registers a JXPathBeanInfo object
+	 * for the specified class. That object returns true to isAtomic().
+	 *
+	 * @param beanClass to register
+	 */
+	public static void registerAtomicClass(Class beanClass) {
+		synchronized (JXPathIntrospector.byClass) {
+			JXPathIntrospector.byClass.put(beanClass, new JXPathBasicBeanInfo(beanClass, true));
+		}
+	}
 
-    /**
-     * Automatically creates and registers a {@link JXPathBeanInfo} object
-     * for the specified class. That object returns true to
-     * {@link JXPathBeanInfo#isDynamic()}.
-     *
-     * @param beanClass to register
-     * @param dynamicPropertyHandlerClass to handle beanClass
-     */
-    public static void registerDynamicClass(Class beanClass,
-            Class dynamicPropertyHandlerClass) {
-        JXPathBasicBeanInfo bi =
-            new JXPathBasicBeanInfo(beanClass, dynamicPropertyHandlerClass);
-        if (beanClass.isInterface()) {
-            synchronized (JXPathIntrospector.byInterface) {
-	            JXPathIntrospector.byInterface.put(beanClass, bi);
-            }
-        }
-        else {
-            synchronized (JXPathIntrospector.byClass) {
-	            JXPathIntrospector.byClass.put(beanClass, bi);
-            }
-        }
-    }
+	/**
+	 * Automatically creates and registers a {@link JXPathBeanInfo} object
+	 * for the specified class. That object returns true to
+	 * {@link JXPathBeanInfo#isDynamic()}.
+	 *
+	 * @param beanClass                   to register
+	 * @param dynamicPropertyHandlerClass to handle beanClass
+	 */
+	public static void registerDynamicClass(Class beanClass,
+	                                        Class dynamicPropertyHandlerClass) {
+		JXPathBasicBeanInfo bi =
+				new JXPathBasicBeanInfo(beanClass, dynamicPropertyHandlerClass);
+		if (beanClass.isInterface()) {
+			synchronized (JXPathIntrospector.byInterface) {
+				JXPathIntrospector.byInterface.put(beanClass, bi);
+			}
+		} else {
+			synchronized (JXPathIntrospector.byClass) {
+				JXPathIntrospector.byClass.put(beanClass, bi);
+			}
+		}
+	}
 
-    /**
-     * Creates and registers a JXPathBeanInfo object for the supplied class. If
-     * the class has already been registered, returns the registered
-     * JXPathBeanInfo object.
-     * <p>
-     * The process of creation of JXPathBeanInfo is as follows:
-     * <ul>
-     * <li>If class named <code>&lt;beanClass&gt;XBeanInfo</code> exists,
-     *     an instance of that class is allocated.
-     * <li>Otherwise, an instance of {@link JXPathBasicBeanInfo
-     *     JXPathBasicBeanInfo}  is allocated.
-     * </ul>
-     * @param beanClass whose info to get
-     * @return JXPathBeanInfo
-     */
-    public static JXPathBeanInfo getBeanInfo(Class beanClass) {
-        JXPathBeanInfo beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(beanClass);
-        if (beanInfo == null) {
-            beanInfo = findDynamicBeanInfo(beanClass);
-            if (beanInfo == null) {
-                beanInfo = findInformant(beanClass);
-                if (beanInfo == null) {
-                    beanInfo = JXPathIntrospector.BEAN_INFO_FACTORY.createBeanInfo(null, beanClass);
-                }
-            }
-            synchronized (JXPathIntrospector.byClass) {
-	            JXPathIntrospector.byClass.put(beanClass, beanInfo);
-            }
-        }
-        return beanInfo;
-    }
+	/**
+	 * Creates and registers a JXPathBeanInfo object for the supplied class. If
+	 * the class has already been registered, returns the registered
+	 * JXPathBeanInfo object.
+	 * <p/>
+	 * The process of creation of JXPathBeanInfo is as follows:
+	 * <ul>
+	 * <li>If class named <code>&lt;beanClass&gt;XBeanInfo</code> exists,
+	 * an instance of that class is allocated.
+	 * <li>Otherwise, an instance of {@link JXPathBasicBeanInfo
+	 * JXPathBasicBeanInfo}  is allocated.
+	 * </ul>
+	 *
+	 * @param beanClass whose info to get
+	 * @return JXPathBeanInfo
+	 */
+	public static JXPathBeanInfo getBeanInfo(Class beanClass) {
+		JXPathBeanInfo beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(beanClass);
+		if (beanInfo == null) {
+			beanInfo = findDynamicBeanInfo(beanClass);
+			if (beanInfo == null) {
+				beanInfo = findInformant(beanClass);
+				if (beanInfo == null) {
+					beanInfo = JXPathIntrospector.BEAN_INFO_FACTORY.createBeanInfo(beanClass);
+				}
+			}
+			synchronized (JXPathIntrospector.byClass) {
+				JXPathIntrospector.byClass.put(beanClass, beanInfo);
+			}
+		}
+		return beanInfo;
+	}
 
-    /**
-     * Find a dynamic bean info if available for any superclasses or
-     * interfaces.
-     * @param beanClass to search for
-     * @return JXPathBeanInfo
-     */
-    private static JXPathBeanInfo findDynamicBeanInfo(Class beanClass) {
-        JXPathBeanInfo beanInfo = null;
-        if (beanClass.isInterface()) {
-            beanInfo = (JXPathBeanInfo) JXPathIntrospector.byInterface.get(beanClass);
-            if (beanInfo != null && beanInfo.isDynamic()) {
-                return beanInfo;
-            }
-        }
+	/**
+	 * Find a dynamic bean info if available for any superclasses or
+	 * interfaces.
+	 *
+	 * @param beanClass to search for
+	 * @return JXPathBeanInfo
+	 */
+	private static JXPathBeanInfo findDynamicBeanInfo(Class beanClass) {
+		JXPathBeanInfo beanInfo = null;
+		if (beanClass.isInterface()) {
+			beanInfo = (JXPathBeanInfo) JXPathIntrospector.byInterface.get(beanClass);
+			if (beanInfo != null && beanInfo.isDynamic()) {
+				return beanInfo;
+			}
+		}
 
-        Class[] interfaces = beanClass.getInterfaces();
-        if (interfaces != null) {
-            for (int i = 0; i < interfaces.length; i++) {
-                beanInfo = findDynamicBeanInfo(interfaces[i]);
-                if (beanInfo != null && beanInfo.isDynamic()) {
-                    return beanInfo;
-                }
-            }
-        }
+		Class[] interfaces = beanClass.getInterfaces();
+		if (interfaces != null) {
+			for (int i = 0; i < interfaces.length; i++) {
+				beanInfo = findDynamicBeanInfo(interfaces[i]);
+				if (beanInfo != null && beanInfo.isDynamic()) {
+					return beanInfo;
+				}
+			}
+		}
 
-        Class sup = beanClass.getSuperclass();
-        if (sup != null) {
-            beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(sup);
-            if (beanInfo != null && beanInfo.isDynamic()) {
-                return beanInfo;
-            }
-            return findDynamicBeanInfo(sup);
-        }
-        return null;
-    }
+		Class sup = beanClass.getSuperclass();
+		if (sup != null) {
+			beanInfo = (JXPathBeanInfo) JXPathIntrospector.byClass.get(sup);
+			if (beanInfo != null && beanInfo.isDynamic()) {
+				return beanInfo;
+			}
+			return findDynamicBeanInfo(sup);
+		}
+		return null;
+	}
 
-    /**
-     * find a JXPathBeanInfo instance for the specified class.
-     * Similar to javax.beans property handler discovery; search for a
-     * class with "XBeanInfo" appended to beanClass.name, then check
-     * whether beanClass implements JXPathBeanInfo for itself.
-     * Invokes the default constructor for any class it finds.
-     * @param beanClass for which to look for an info provider
-     * @return JXPathBeanInfo instance or null if none found
-     */
-    private static synchronized JXPathBeanInfo findInformant(Class beanClass) {
-        String name = beanClass.getName() + "XBeanInfo";
-        try {
-            return (JXPathBeanInfo) instantiate(beanClass, name);
-        }
-        catch (Exception ex) { //NOPMD
-            // Just drop through
-        }
+	/**
+	 * find a JXPathBeanInfo instance for the specified class.
+	 * Similar to javax.beans property handler discovery; search for a
+	 * class with "XBeanInfo" appended to beanClass.name, then check
+	 * whether beanClass implements JXPathBeanInfo for itself.
+	 * Invokes the default constructor for any class it finds.
+	 *
+	 * @param beanClass for which to look for an info provider
+	 * @return JXPathBeanInfo instance or null if none found
+	 */
+	private static synchronized JXPathBeanInfo findInformant(Class beanClass) {
+		String name = beanClass.getName() + "XBeanInfo";
+		try {
+			return (JXPathBeanInfo) instantiate(beanClass, name);
+		} catch (Exception ex) { //NOPMD
+			// Just drop through
+		}
 
-        // Now try checking if the bean is its own JXPathBeanInfo.
-        try {
-            if (JXPathBeanInfo.class.isAssignableFrom(beanClass)) {
-                return (JXPathBeanInfo) beanClass.newInstance();
-            }
-        }
-        catch (Exception ex) { //NOPMD
-            // Just drop through
-        }
+		// Now try checking if the bean is its own JXPathBeanInfo.
+		try {
+			if (JXPathBeanInfo.class.isAssignableFrom(beanClass)) {
+				return (JXPathBeanInfo) beanClass.newInstance();
+			}
+		} catch (Exception ex) { //NOPMD
+			// Just drop through
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * Try to create an instance of a named class.
-     * First try the classloader of "sibling", then try the system
-     * classloader.
-     * @param sibling Class
-     * @param className to instantiate
-     * @return new Object
-     * @throws Exception if instantiation fails
-     */
-    private static Object instantiate(Class sibling, String className)
-            throws Exception {
+	/**
+	 * Try to create an instance of a named class.
+	 * First try the classloader of "sibling", then try the system
+	 * classloader.
+	 *
+	 * @param sibling   Class
+	 * @param className to instantiate
+	 * @return new Object
+	 * @throws Exception if instantiation fails
+	 */
+	private static Object instantiate(Class sibling, String className)
+			throws Exception {
 
-        // First check with sibling's classloader (if any).
-        ClassLoader cl = sibling.getClassLoader();
-        if (cl != null) {
-            try {
-                Class cls = cl.loadClass(className);
-                return cls.newInstance();
-            }
-            catch (Exception ex) { //NOPMD
-                // Just drop through and use the ClassLoaderUtil.
-            }
-        }
+		// First check with sibling's classloader (if any).
+		ClassLoader cl = sibling.getClassLoader();
+		if (cl != null) {
+			try {
+				Class cls = cl.loadClass(className);
+				return cls.newInstance();
+			} catch (Exception ex) { //NOPMD
+				// Just drop through and use the ClassLoaderUtil.
+			}
+		}
 
-        // Now try the ClassLoaderUtil.
-        Class cls = ClassLoaderUtil.getClass(className);
-        return cls.newInstance();
-    }
+		// Now try the ClassLoaderUtil.
+		Class cls = ClassLoaderUtil.getClass(className);
+		return cls.newInstance();
+	}
 }
