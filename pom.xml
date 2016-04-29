@@ -24,7 +24,7 @@ under the License.
 	<name>Fork of Apache Commons JXPath with JAXB extensions</name>
 	<!-- when cutting a release, be sure to modify the commons.release.version property,
 		found at /project/properties/commons.release.version in this document -->
-	<version>1.1.0</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<description>A Java-based implementation of XPath 1.0 based on Apache Commons JXPath, withe enhancements to process
 		graphs of JAXB-Serializable objects using the properties' XML names.
 	</description>
@@ -33,7 +33,7 @@ under the License.
 		<connection>scm:git:https://github.com/mklemm/commons-jxpath.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/commons-jxpath.git</developerConnection>
 		<url>https://github.com/mklemm/commons-jxpath.git</url>
-		<tag>jxpath-1.1.0</tag>
+		<tag>jxpath-1.0.0</tag>
 	</scm>
 
 	<properties>
