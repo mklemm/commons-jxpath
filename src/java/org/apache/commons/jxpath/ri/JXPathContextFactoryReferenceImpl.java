@@ -16,6 +16,8 @@
  */
 package org.apache.commons.jxpath.ri;
 
+import java.util.Locale;
+
 import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathContextFactory;
 
@@ -34,8 +36,9 @@ public class JXPathContextFactoryReferenceImpl extends JXPathContextFactory {
     }
 
     public JXPathContext newContext(
-        JXPathContext parentContext,
-        Object contextBean) {
-        return new JXPathContextReferenceImpl(parentContext, contextBean);
+            final JXPathContext parentContext,
+            final Object contextBean,
+            final Locale locale) {
+        return new JXPathContextReferenceImpl(parentContext, contextBean, locale);
     }
 }

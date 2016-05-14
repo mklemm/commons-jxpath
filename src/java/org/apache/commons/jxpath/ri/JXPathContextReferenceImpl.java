@@ -23,9 +23,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import org.apache.commons.jxpath.CompiledExpression;
 import org.apache.commons.jxpath.ExceptionHandler;
@@ -51,8 +52,8 @@ import org.apache.commons.jxpath.ri.model.beans.BeanPointerFactory;
 import org.apache.commons.jxpath.ri.model.beans.CollectionPointerFactory;
 import org.apache.commons.jxpath.ri.model.container.ContainerPointerFactory;
 import org.apache.commons.jxpath.ri.model.dynamic.DynamicPointerFactory;
-import org.apache.commons.jxpath.util.ReverseComparator;
 import org.apache.commons.jxpath.util.ClassLoaderUtil;
+import org.apache.commons.jxpath.util.ReverseComparator;
 import org.apache.commons.jxpath.util.TypeUtils;
 
 /**
@@ -165,8 +166,8 @@ public class JXPathContextReferenceImpl extends JXPathContext {
      * @param contextBean Object
      */
     protected JXPathContextReferenceImpl(JXPathContext parentContext,
-            Object contextBean) {
-        this(parentContext, contextBean, null);
+            Object contextBean, Locale locale) {
+        this(parentContext, contextBean, null, locale);
     }
 
     /**
@@ -176,8 +177,8 @@ public class JXPathContextReferenceImpl extends JXPathContext {
      * @param contextPointer context pointer
      */
     public JXPathContextReferenceImpl(JXPathContext parentContext,
-            Object contextBean, Pointer contextPointer) {
-        super(parentContext, contextBean);
+            Object contextBean, Pointer contextPointer, Locale locale) {
+        super(parentContext, contextBean, locale);
 
         synchronized (nodeFactories) {
             createNodeFactoryArray();
@@ -681,7 +682,7 @@ public class JXPathContextReferenceImpl extends JXPathContext {
                 "Cannot create a relative context for a non-existent node: "
                     + pointer);
         }
-        return new JXPathContextReferenceImpl(this, contextBean, pointer);
+        return new JXPathContextReferenceImpl(this, contextBean, pointer, getLocale());
     }
 
     public Pointer getContextPointer() {

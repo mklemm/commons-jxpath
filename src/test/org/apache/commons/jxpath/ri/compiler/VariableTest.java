@@ -89,7 +89,7 @@ public class VariableTest extends JXPathTestCase {
     }
 
     public void testNestedContext() {
-        JXPathContext nestedContext = JXPathContext.newContext(context, null);
+        JXPathContext nestedContext = JXPathContext.newContext(context, null, null);
 
         assertXPathValue(nestedContext, "$a", new Double(1));
     }

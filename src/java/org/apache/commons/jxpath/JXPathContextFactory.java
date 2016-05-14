@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.commons.jxpath.util.ClassLoaderUtil;
@@ -136,7 +137,8 @@ public abstract class JXPathContextFactory {
 
     public abstract JXPathContext newContext(
         JXPathContext parentContext,
-        Object contextBean);
+        Object contextBean,
+        Locale locale);
 
     // -------------------- private methods --------------------
     // This code is duplicated in all factories.

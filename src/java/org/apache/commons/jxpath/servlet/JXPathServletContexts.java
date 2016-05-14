@@ -102,7 +102,7 @@ public final class JXPathServletContexts {
                 getRequestContext(
                     pageContext.getRequest(),
                     pageContext.getServletContext());
-            context = factory.newContext(parentContext, pageContext);
+            context = factory.newContext(parentContext, pageContext, null);
             context.setVariables(
                 new KeywordVariables(
                     Constants.PAGE_SCOPE,
@@ -147,7 +147,7 @@ public final class JXPathServletContexts {
         }
         ServletRequestAndContext handle =
             new ServletRequestAndContext(request, servletContext);
-        context = factory.newContext(parentContext, handle);
+        context = factory.newContext(parentContext, handle, null);
         context.setVariables(
             new KeywordVariables(Constants.REQUEST_SCOPE, handle));
         request.setAttribute(Constants.JXPATH_CONTEXT, context);
@@ -169,7 +169,7 @@ public final class JXPathServletContexts {
             JXPathContext parentContext = getApplicationContext(servletContext);
             HttpSessionAndServletContext handle =
                 new HttpSessionAndServletContext(session, servletContext);
-            context = factory.newContext(parentContext, handle);
+            context = factory.newContext(parentContext, handle, null);
             context.setVariables(
                 new KeywordVariables(Constants.SESSION_SCOPE, handle));
             session.setAttribute(Constants.JXPATH_CONTEXT, context);
@@ -189,7 +189,7 @@ public final class JXPathServletContexts {
             (JXPathContext) servletContext.getAttribute(
                 Constants.JXPATH_CONTEXT);
         if (context == null) {
-            context = factory.newContext(null, servletContext);
+            context = factory.newContext(null, servletContext, null);
             context.setVariables(
                 new KeywordVariables(
                     Constants.APPLICATION_SCOPE,
