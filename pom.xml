@@ -47,7 +47,6 @@ under the License.
 		<connection>scm:git:https://github.com/mklemm/commons-jxpath.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/commons-jxpath.git</developerConnection>
 		<url>https://github.com/mklemm/commons-jxpath.git</url>
-		<tag>jxpath-1.0.0</tag>
 	</scm>
 
 	<properties>
