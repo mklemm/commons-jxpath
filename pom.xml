@@ -161,7 +161,7 @@ under the License.
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.2</version>
+			<version>1.9.4</version>
 			<optional>false</optional>
 		</dependency>
 		<dependency>
